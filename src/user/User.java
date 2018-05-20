@@ -34,7 +34,7 @@ public class User implements RMIClient{
                 }
                 try {
                     pullRegistry = LocateRegistry.getRegistry(host);
-                    ServerConnected = (RMIServer) pullRegistry.lookup("ToBeDecided");
+                    ServerConnected = (RMIServer) pullRegistry.lookup("RMISharedClient");
                     /*remember to switch the lookup parameter with the right one */
                     InetAddress ia = InetAddress.getLocalHost();
                     boolean result = ServerConnected.ManageConnection(usurname,pswd,ia.getHostAddress(),op);
