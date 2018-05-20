@@ -61,33 +61,23 @@ public class User implements RMIClient{
     }
 
 /* that method is for the topic registration..*/
-    private boolean TopicSubscribeRequest(String TopicName){
+    private boolean SubscribeRequest(String TopicName, String op){
         if(connected == false){
             System.err.println("Permission denied! you are not connected!");
             return false;
         }
-        return ServerConnected.ManageTopicSubscribe(TopicName); /* assuming that the server class will use an hash map <String,Topic> where the string is the label*/
+        switch(op){
+            case "subscribe":
+                return ServerConnected.ManageSubscribe(TopicName,false); /* assuming that the server class will use an hash map <String,Topic> where the string is the label*/
+            case "unsubscribe":
+                return ServerConnected.ManageSubscribe(TopicName,true); /* assuming that the server class will use an hash map <String,Topic> where the string is the label*/
+            default:
+                System.err.println("invalid operation");
+        }
+        return false; /*something gone wrong, probably wrong operation*/
         /*if the topic doesn't exist, maybe the server could create it and subscribe that user and than return (?)*/
     }
-    /*work in progress*/
-    private boolean SubscribeRequest(String host){
-        if(connected == true){
-            System.err.println("You are already registered!");
-            return false;
-        }
-        try {
-            pullRegistry = LocateRegistry.getRegistry(host);
-            ServerConnected = (RMIServer) pullRegistry.lookup("ToBeDecided");
-            boolean result = ServerConnected.ManageSubscribe(usurname, pswd);
-            if(result == true ) connected = true;
-            return result;
-        } catch (RemoteException e) {
-            e.printStackTrace();
-        } catch (NotBoundException e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
+
 
     private void MessageRequest(){
 
