@@ -62,6 +62,10 @@ public class User implements RMIClient{
 
 /* that method is for the topic registration..*/
     private boolean TopicSubscribeRequest(String TopicName){
+        if(connected == false){
+            System.err.println("Permission denied! you are not connected!");
+            return false;
+        }
         return ServerConnected.ManageTopicSubscribe(TopicName); /* assuming that the server class will use an hash map <String,Topic> where the string is the label*/
         /*if the topic doesn't exist, maybe the server could create it and subscribe that user and than return (?)*/
     }
@@ -74,11 +78,15 @@ public class User implements RMIClient{
         try {
             pullRegistry = LocateRegistry.getRegistry(host);
             ServerConnected = (RMIServer) pullRegistry.lookup("ToBeDecided");
+            boolean result = ServerConnected.ManageSubscribe(usurname, pswd);
+            if(result == true ) connected = true;
+            return result;
         } catch (RemoteException e) {
             e.printStackTrace();
         } catch (NotBoundException e) {
             e.printStackTrace();
         }
+        return false;
     }
 
     private void MessageRequest(){
