@@ -17,6 +17,7 @@ public class TopicClass {
     public boolean addUser(String username){
         return Users.add(username);
     }
+    public boolean RemoveUser(String username) { return Users.remove(username); }
 
     public boolean addMessage(MessageClass msg){
         return Convo.add(msg);
