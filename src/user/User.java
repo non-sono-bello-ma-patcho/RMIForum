@@ -4,10 +4,12 @@ import core.*;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.rmi.AlreadyBoundException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
 
 
 public class User implements RMIClient{
@@ -17,6 +19,7 @@ public class User implements RMIClient{
     private String usurname;
     private String pswd;
     private boolean connected = false;
+    private final int myListeningPort = 1968;
 
     public User(String nick, String password, int port){
         usurname = nick;
@@ -97,8 +100,24 @@ public class User implements RMIClient{
         return true;
     }
 
-    public void CLiNotify(){ /* should it be synchronized??? */
+    public void CLiNotify(){
+        if(connected == false){
+            System.err.println("Permission denied! The client isn't connected");
+            return;
+        }
+        ServerConnected.notify();
+    }
 
+    private void remoteExportation(User myUser){
+        try {
+            RMIClient Stub = (RMIClient) UnicastRemoteObject.exportObject(myUser,0);
+            pushRegistry = LocateRegistry.createRegistry(myListeningPort);
+            pushRegistry.bind("RMISharedClient",Stub);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        } catch (AlreadyBoundException e) {
+            e.printStackTrace();
+        }
     }
 
     public String GetUsername(){
