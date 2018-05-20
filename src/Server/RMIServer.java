@@ -24,7 +24,7 @@ public class RMIServer implements core.RMIServer {
     }
 
     @Override
-    public boolean ManageConnection(String username, String password, String op) {
+    public boolean ManageConnection(String username, String password, String address, String op) {
         // init convo with client...
 
         return false;
