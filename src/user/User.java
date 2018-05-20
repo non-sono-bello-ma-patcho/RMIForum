@@ -1,6 +1,9 @@
 package user;
 import core.*;
 
+
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -8,21 +11,16 @@ import java.rmi.registry.Registry;
 
 
 public class User implements RMIClient{
-    Registry pullRegistry; /* Registry used for pulling remote method */
-    Registry pushRegistry; /* Registry used for pushing remote method */
-    RMIServer ServerConnected; /* that is the stub */
-    String usurname; /* we can also change the implementation and ask that parameter later */
-    String pswd; /* we can also change the implementation and ask that parameter later */
+    public Registry pullRegistry; /* Registry used for pulling remote method */
+    public Registry pushRegistry; /* Registry used for pushing remote method */
+    public RMIServer ServerConnected; /* that is the stub */
+    private String usurname;
+    private String pswd;
+    private boolean connected = false;
 
-    /*maybe there is a better way to initialize psw and usurname */
     public User(String nick, String password, int port){
         usurname = nick;
         pswd = password;
-        try {
-            pushRegistry = LocateRegistry.createRegistry(port); /* to be modified later... move that raw in the main function after the connection */
-        } catch (RemoteException e) {
-            e.printStackTrace();
-        }
     }
 
 
@@ -30,26 +28,40 @@ public class User implements RMIClient{
     private  boolean ConnectionRequest(String host, String op){
         switch(op){
             case "connect":
+                if ( connected == true){
+                    System.err.println("You are already connected");
+                    return false;
+                }
                 try {
                     pullRegistry = LocateRegistry.getRegistry(host);
                     ServerConnected = (RMIServer) pullRegistry.lookup("ToBeDecided");
                     /*remember to switch the lookup parameter with the right one */
-                    return ServerConnected.ManageConnection(usurname,pswd,op);
-
+                    InetAddress ia = InetAddress.getLocalHost();
+                    boolean result = ServerConnected.ManageConnection(usurname,pswd,ia.getHostAddress(),op);
+                    if(result == true ) connected = true;
+                    return result;
                 } catch (RemoteException e) {
                     e.printStackTrace();
                 } catch (NotBoundException e) {
+                    e.printStackTrace();
+                } catch (UnknownHostException e) {
                     e.printStackTrace();
                 }
                 break;
 
             case "disconnect":
-                if(pullRegistry == null){
+                if(connected == false){
                     System.err.println("You are already disconnected");
                     return true;
                 }
-                return ServerConnected.ManageConnection(usurname,pswd,op);
-
+                try{
+                    InetAddress ia = InetAddress.getLocalHost();
+                    boolean result = ServerConnected.ManageConnection(usurname,pswd,ia.getHostAddress(),op);
+                    if(result == true ) connected = false;
+                    return result;
+                } catch (UnknownHostException e) {
+                    e.printStackTrace();
+                }
             default:
                 System.err.println("invalid operation");
                 break;
@@ -57,19 +69,48 @@ public class User implements RMIClient{
         return false;
     }
 
-/* that method is for the topic registration... there is no definition (for now) for a server registration request */
-    private boolean SubscribeRequest(String TopicName){ /* how could the user choose the Topic he wants to subscribe in? */  /*--> updated*/
-        return ServerConnected.ManageSubscribe(TopicName); /* assuming that the server class will use an hash map <String,Topic> where the string is the label*/
-        /*if the topic doesn't exist, maybe the server culd create it and subscribe that user and than return (?)*/
+/* that method is for the topic registration..*/
+    private boolean SubscribeRequest(String TopicName, String op){
+        if(connected == false){
+            System.err.println("Permission denied! you are not connected!");
+            return false;
+        }
+        switch(op){
+            case "subscribe":
+                return ServerConnected.ManageSubscribe(usurname,TopicName,false); /* assuming that the server class will use an hash map <String,Topic> where the string is the label*/
+            case "unsubscribe":
+                return ServerConnected.ManageSubscribe(usurname,TopicName,true); /* assuming that the server class will use an hash map <String,Topic> where the string is the label*/
+            default:
+                System.err.println("invalid operation");
+        }
+        return false; /*something gone wrong, probably wrong operation*/
+        /*if the topic doesn't exist, maybe the server could create it and subscribe that user and than return (?)*/
     }
 
 
-    private void MessageRequest(){
-
+    private boolean MessageRequest(MessageClass msg,String topicName){
+        if(connected == false){
+            System.err.println("Permission denied! you are not connected!");
+            return false;
+        }
+        ServerConnected.ManagePublish(msg,topicName);
+        return true;
     }
 
     public void CLiNotify(){ /* should it be synchronized??? */
 
+    }
+
+    public String GetUsername(){
+        return this.usurname;
+    }
+
+    public String GetPassword(){
+        return this.pswd;
+    }
+
+    public boolean GetConnectonStatus(){
+        return this.connected;
     }
 
     public static void main(String[] args){
