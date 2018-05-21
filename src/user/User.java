@@ -10,6 +10,7 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.HashMap;
 
 
 public class User implements RMIClient{
@@ -20,7 +21,7 @@ public class User implements RMIClient{
     private String pswd;
     private boolean connected = false;
     private final int myListeningPort = 1968;
-
+    private HashMap<String, TopicClass> myTopics;
     public User(String nick, String password, int port){
         usurname = nick;
         pswd = password;
@@ -105,7 +106,9 @@ public class User implements RMIClient{
             System.err.println("Permission denied! The client isn't connected");
             return;
         }
-        ServerConnected.notify();
+        myTopics = ServerConnected.getTopics();
+        // if client subscribed, then notify...
+
     }
 
     private void remoteExportation(User myUser){

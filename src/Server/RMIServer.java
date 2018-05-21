@@ -64,9 +64,9 @@ public class RMIServer implements core.RMIServer {
         reg.bind(alias, stub);
     }
 
-    public void RMIshutDown(Registry reg,RMIServer obj, String alias) throws RemoteException, NotBoundException {
-        reg.unbind(alias);
-        UnicastRemoteObject.unexportObject(obj, true);
+    public void RMIshutDown() throws RemoteException, NotBoundException {
+        ServerRegistry.unbind("RMISharedServer");
+        UnicastRemoteObject.unexportObject(this, true);
     }
 
     public RMIServer(){
@@ -79,12 +79,14 @@ public class RMIServer implements core.RMIServer {
         serverSetUp();
     }
 
-    public void shutDown(){
+    public void shutDown() throws RemoteException, NotBoundException {
+        RMIshutDown();
+        pool.StopPool();
     }
 
     @Override
     public synchronized boolean ManageConnection(String username, String password, String address, String op) {
-        // init convo with client...
+        // init conversation with client...
         try {
             RMIClient stub = getRemoteMethod(address);
             if(ClientList.containsKey(username)) return false;
@@ -96,6 +98,7 @@ public class RMIServer implements core.RMIServer {
         }
         Credential.put(username, password);
         return true;
+        // disconnection need to be added
     }
 
     @Override
@@ -107,6 +110,8 @@ public class RMIServer implements core.RMIServer {
     @Override
     public void Notify() {
         // call remotely users methods for all client registered...0
+        // submit callable for each client....
+
     }
 
     @Override
@@ -116,12 +121,7 @@ public class RMIServer implements core.RMIServer {
     }
 
     @Override
-    public List<String> getConversation(String topicName){
-        return Topics.get(topicName).ListMessages();
-    }
-
-    @Override
-    public List<String> getAvailableTopic(){
-        return null;
+    public HashMap<String, TopicClass> getTopics(){
+        return Topics;
     }
 }
