@@ -16,7 +16,7 @@ import java.util.HashMap;
 public class User implements RMIClient{
     public Registry pullRegistry; /* Registry used for pulling remote method */
     public Registry pushRegistry; /* Registry used for pushing remote method */
-    public RMIServer ServerConnected; /* that is the stub */
+    public RMIServerInterface ServerConnected; /* that is the stub */
     private String usurname;
     private String pswd;
     private boolean connected = false;
@@ -38,7 +38,7 @@ public class User implements RMIClient{
                 }
                 try {
                     pullRegistry = LocateRegistry.getRegistry(host);
-                    ServerConnected = (RMIServer) pullRegistry.lookup("RMISharedClient");
+                    ServerConnected = (RMIServerInterface) pullRegistry.lookup("RMISharedClient");
                     /*remember to switch the lookup parameter with the right one */
                     InetAddress ia = InetAddress.getLocalHost();
                     boolean result = ServerConnected.ManageConnection(usurname,pswd,ia.getHostAddress(),op);
