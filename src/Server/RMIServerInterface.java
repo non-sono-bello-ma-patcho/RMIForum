@@ -87,6 +87,7 @@ public class RMIServerInterface implements core.RMIServerInterface {
 
     @Override
     public synchronized boolean ManageConnection(String username, String password, String address, String op) throws RemoteException {
+        System.err.println("Adding ["+username+"] to Users!");
         // init conversation with client...
         try {
             RMIClient stub = getRemoteMethod(address);
@@ -117,6 +118,7 @@ public class RMIServerInterface implements core.RMIServerInterface {
 
     @Override
     public void ManagePublish(MessageClass msg, String TopicName) throws RemoteException {
+        System.err.println("Adding ["+msg+"] to ["+TopicName+"]!");
         Topics.get(TopicName).addMessage(msg);
         Notify(); // update local users convos...
     }
@@ -124,6 +126,14 @@ public class RMIServerInterface implements core.RMIServerInterface {
     @Override
     public HashMap<String, TopicClass> getTopics() throws RemoteException {
         return Topics;
+    }
+
+    @Override
+    public synchronized boolean addTopic(String TopicName){
+        System.err.println("Adding ["+TopicName+"] to Topics!");
+        if(Topics.containsKey(TopicName)) return false;
+        Topics.put(TopicName, new TopicClass(TopicName));
+        return true;
     }
 
     public static void main(String [] args){
