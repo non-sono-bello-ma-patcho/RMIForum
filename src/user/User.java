@@ -65,6 +65,8 @@ public class User implements RMIClient{
                     return result;
                 } catch (UnknownHostException e) {
                     e.printStackTrace();
+                } catch (RemoteException e) {
+                    e.printStackTrace();
                 }
             default:
                 System.err.println("invalid operation");
@@ -74,7 +76,7 @@ public class User implements RMIClient{
     }
 
 /* that method is for the topic registration..*/
-    private boolean SubscribeRequest(String TopicName, String op){
+    private boolean SubscribeRequest(String TopicName, String op) throws RemoteException {
         if(connected == false){
             System.err.println("Permission denied! you are not connected!");
             return false;
@@ -92,7 +94,7 @@ public class User implements RMIClient{
     }
 
 
-    private boolean MessageRequest(MessageClass msg,String topicName){
+    private boolean MessageRequest(MessageClass msg,String topicName) throws RemoteException {
         if(connected == false){
             System.err.println("Permission denied! you are not connected!");
             return false;
@@ -101,7 +103,7 @@ public class User implements RMIClient{
         return true;
     }
 
-    public void CLiNotify(){
+    public void CLiNotify() throws RemoteException {
         if(connected == false){
             System.err.println("Permission denied! The client isn't connected");
             return;
