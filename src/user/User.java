@@ -19,7 +19,7 @@ import java.util.Set;
 public class User implements RMIClient{
     public Registry pullRegistry; /* Registry used for pulling remote method */
     public Registry pushRegistry; /* Registry used for pushing remote method */
-    public RMIServer ServerConnected; /* that is the stub */
+    public RMIServerInterface ServerConnected; /* that is the stub */
     private String usurname;
     private String pswd;
     private boolean connected = false;
@@ -44,7 +44,7 @@ public class User implements RMIClient{
                 }
                 try {
                     pullRegistry = LocateRegistry.getRegistry(host);
-                    ServerConnected = (RMIServer) pullRegistry.lookup("RMISharedClient");
+                    ServerConnected = (RMIServerInterface) pullRegistry.lookup("RMISharedClient");
                     /*remember to switch the lookup parameter with the right one */
                     InetAddress ia = InetAddress.getLocalHost();
                     boolean result = ServerConnected.ManageConnection(usurname,pswd,ia.getHostAddress(),op);
@@ -85,6 +85,8 @@ public class User implements RMIClient{
                     return result;
                 } catch (UnknownHostException e) {
                     e.printStackTrace();
+                } catch (RemoteException e) {
+                    e.printStackTrace();
                 }
             default:
                 System.err.println("invalid operation");
@@ -94,7 +96,7 @@ public class User implements RMIClient{
     }
 
 /* that method is for the topic registration..*/
-    private boolean SubscribeRequest(String TopicName, String op){
+    private boolean SubscribeRequest(String TopicName, String op) throws RemoteException {
         if(connected == false){
             System.err.println("Permission denied! you are not connected!");
             return false;
@@ -114,7 +116,7 @@ public class User implements RMIClient{
     }
 
 
-    private boolean MessageRequest(MessageClass msg,String topicName){
+    private boolean MessageRequest(MessageClass msg,String topicName) throws RemoteException {
         if(connected == false){
             System.err.println("Permission denied! you are not connected!");
             return false;
@@ -123,7 +125,7 @@ public class User implements RMIClient{
         return true;
     }
 
-    public void CLiNotify(){
+    public void CLiNotify() throws RemoteException {
         if(connected == false){
             System.err.println("Permission denied! The client isn't connected");
             return;

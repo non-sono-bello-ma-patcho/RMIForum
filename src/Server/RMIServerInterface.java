@@ -1,9 +1,6 @@
 package Server;
 
-import core.MessageClass;
-import core.PoolClass;
-import core.RMIClient;
-import core.TopicClass;
+import core.*;
 
 import java.rmi.AlreadyBoundException;
 import java.rmi.NotBoundException;
@@ -12,36 +9,40 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Scanner;
 
-public class RMIServer implements core.RMIServer {
+public class RMIServerInterface implements core.RMIServerInterface {
     private HashMap<String, TopicClass> Topics;
     private HashMap<String, RMIClient> ClientList;
     private HashMap<String, String> Credential;
     private PoolClass pool;
-    Registry ServerRegistry;
+    private Registry ServerRegistry;
     private final int clientPort = 1968;
 
     private void serverSetUp(){
-        System.setProperty("java.security.policy", "/tmp/RMIServer.policy");
+        System.setProperty("java.security.policy", "/tmp/RMIServerInterface.policy");
         if (System.getSecurityManager()==null) System.setSecurityManager(new SecurityManager());
-        RMIServer obj = new RMIServer();
+        // RMIServerInterface obj = new RMIServerInterface();
         String alias = "RMISharedServer";
         try {
             ServerRegistry=setRegistry(clientPort);
-            ExportNBind(ServerRegistry, obj, alias,clientPort);
+            ExportNBind(ServerRegistry, this, alias,clientPort);
 
             System.err.println("Server ready, type something to shutdown...");
             Scanner sc = new Scanner(System.in);
             System.err.println("You typed: "+sc.next());
         } catch (RemoteException e) {
             System.err.println("Couldn't set registry, maybe you want to check stack trace?[S/n]");
-            // showStackTrace(e);
+            showStackTrace(e);
         } catch (AlreadyBoundException e) {
             System.err.println("Couldn't export and bind, maybe you want to check stack trace?[S/n]");
-            // showStackTrace(e);
+            showStackTrace(e);
         }
+    }
+
+    static void showStackTrace(Exception e){
+        /*Scanner sc = new Scanner(System.in);
+        if(sc.nextInt()!='n')*/ e.printStackTrace();
     }
 
     private RMIClient getRemoteMethod(String host) throws RemoteException, NotBoundException {
@@ -59,8 +60,8 @@ public class RMIServer implements core.RMIServer {
         }
     }
 
-    private void ExportNBind(Registry reg, RMIServer obj, String alias, int port) throws AlreadyBoundException, RemoteException {
-        RMIServer stub = (RMIServer) UnicastRemoteObject.exportObject(obj, port);
+    private void ExportNBind(Registry reg, RMIServerInterface obj, String alias, int port) throws AlreadyBoundException, RemoteException {
+        RMIServerInterface stub = (RMIServerInterface) UnicastRemoteObject.exportObject(obj, port);
         reg.bind(alias, stub);
     }
 
@@ -69,7 +70,7 @@ public class RMIServer implements core.RMIServer {
         UnicastRemoteObject.unexportObject(this, true);
     }
 
-    public RMIServer(){
+    public RMIServerInterface(){
         Topics = new HashMap<>();
         ClientList = new HashMap<>();
         Credential = new HashMap<>();
@@ -85,7 +86,8 @@ public class RMIServer implements core.RMIServer {
     }
 
     @Override
-    public synchronized boolean ManageConnection(String username, String password, String address, String op) {
+    public synchronized boolean ManageConnection(String username, String password, String address, String op) throws RemoteException {
+        System.err.println("Adding ["+username+"] to Users!");
         // init conversation with client...
         try {
             RMIClient stub = getRemoteMethod(address);
@@ -102,7 +104,7 @@ public class RMIServer implements core.RMIServer {
     }
 
     @Override
-    public synchronized boolean ManageSubscribe(String TopicLabel, String User, boolean unsubscribe) {
+    public synchronized boolean ManageSubscribe(String TopicLabel, String User, boolean unsubscribe) throws RemoteException {
         if(!unsubscribe) return Topics.get(TopicLabel).addUser(User);
         else return Topics.get(TopicLabel).RemoveUser(User);
     }
@@ -115,13 +117,26 @@ public class RMIServer implements core.RMIServer {
     }
 
     @Override
-    public void ManagePublish(MessageClass msg, String TopicName) {
+    public void ManagePublish(MessageClass msg, String TopicName) throws RemoteException {
+        System.err.println("Adding ["+msg+"] to ["+TopicName+"]!");
         Topics.get(TopicName).addMessage(msg);
         Notify(); // update local users convos...
     }
 
     @Override
-    public HashMap<String, TopicClass> getTopics(){
+    public HashMap<String, TopicClass> getTopics() throws RemoteException {
         return Topics;
+    }
+
+    @Override
+    public synchronized boolean addTopic(String TopicName){
+        System.err.println("Adding ["+TopicName+"] to Topics!");
+        if(Topics.containsKey(TopicName)) return false;
+        Topics.put(TopicName, new TopicClass(TopicName));
+        return true;
+    }
+
+    public static void main(String [] args){
+        RMIServerInterface rs = new RMIServerInterface();
     }
 }
