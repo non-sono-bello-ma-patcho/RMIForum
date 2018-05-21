@@ -155,13 +155,21 @@ public class User implements RMIClient{
     }
 
     private void remoteExportation(User myUser){
+
         try {
+            InetAddress ia = InetAddress.getLocalHost();
+            System.setProperty("java.rmi.server.hostname", ia.getHostAddress());
+            System.setProperty("java.security.policy", "file: ./RMIClient.policy");
+            if(System.getSecurityManager()== null) System.setSecurityManager(new SecurityManager());
+
             RMIClient Stub = (RMIClient) UnicastRemoteObject.exportObject(myUser,0);
             pushRegistry = LocateRegistry.createRegistry(myListeningPort);
             pushRegistry.bind("RMISharedClient",Stub);
         } catch (RemoteException e) {
             e.printStackTrace();
         } catch (AlreadyBoundException e) {
+            e.printStackTrace();
+        } catch (UnknownHostException e) {
             e.printStackTrace();
         }
     }
