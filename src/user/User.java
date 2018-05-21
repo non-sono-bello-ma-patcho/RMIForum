@@ -11,6 +11,9 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
 
 public class User implements RMIClient{
@@ -21,7 +24,10 @@ public class User implements RMIClient{
     private String pswd;
     private boolean connected = false;
     private final int myListeningPort = 1968;
-    private HashMap<String, TopicClass> myTopics;
+    private HashMap<String, TopicClass> ServerTopics;
+    private HashMap<String, Boolean> myTopics;
+    private HashMap<String,List<String>> TopicMessages;
+
     public User(String nick, String password, int port){
         usurname = nick;
         pswd = password;
@@ -42,7 +48,21 @@ public class User implements RMIClient{
                     /*remember to switch the lookup parameter with the right one */
                     InetAddress ia = InetAddress.getLocalHost();
                     boolean result = ServerConnected.ManageConnection(usurname,pswd,ia.getHostAddress(),op);
-                    if(result == true ) connected = true;
+
+                    /*sostanzialmente questa parte l'ho dedicata all'inizializzazione delle hashmap */
+                    if(result == true ){
+                        connected = true;
+                        ServerTopics = ServerConnected.getTopics(); /*inizializzo la hashmap ServerTopics */
+                        Set<String> mySetofKey = ServerTopics.keySet(); /* mi è utile per usare l'iterator */
+                        Iterator<String> myIterator = mySetofKey.iterator();
+                        while(myIterator.hasNext()){
+                            String TopicName = ServerTopics.get(myIterator).getName();
+                            myTopics.put(TopicName,false); /* inizializzo la hashmap contenete i miei topics (di default sono tutti false a connection time ) */
+                            TopicMessages.put(TopicName,ServerTopics.get(TopicName).ListMessages()); /* inizializzo la mia hashmap contenente ogni topic coi relativi mex */
+                            myIterator.next();
+                        }
+                    }
+
                     return result;
                 } catch (RemoteException e) {
                     e.printStackTrace();
@@ -81,8 +101,10 @@ public class User implements RMIClient{
         }
         switch(op){
             case "subscribe":
+                myTopics.replace(TopicName,true); /* indico nella mia hashmap che mi sono iscritto anche a quel topic */
                 return ServerConnected.ManageSubscribe(usurname,TopicName,false); /* assuming that the server class will use an hash map <String,Topic> where the string is the label*/
             case "unsubscribe":
+                myTopics.replace(TopicName,false); /* indico nella mia hashmap che mi sono disiscritto anche a quel topic */
                 return ServerConnected.ManageSubscribe(usurname,TopicName,true); /* assuming that the server class will use an hash map <String,Topic> where the string is the label*/
             default:
                 System.err.println("invalid operation");
@@ -106,9 +128,28 @@ public class User implements RMIClient{
             System.err.println("Permission denied! The client isn't connected");
             return;
         }
-        myTopics = ServerConnected.getTopics();
-        // if client subscribed, then notify...
+        ServerTopics = ServerConnected.getTopics();
 
+        /*check if the notify has come for a new topic creation */
+        Set<String> setTopic = ServerTopics.keySet();
+        Iterator<String> myIterator = setTopic.iterator();
+        while(myIterator.hasNext()){
+            String TopicName = ServerTopics.get(myIterator).getName();
+            if(!myTopics.containsKey(myIterator)) {
+                System.out.println("Flamingorum has recently added:" + TopicName + " topic");
+                //String topicToAdd = ServerTopics.get(myIterator).getName();
+                myTopics.put(TopicName, false);
+                TopicMessages.put(TopicName,ServerTopics.get(TopicName).ListMessages());
+            }
+            else if(myTopics.get(TopicName) == true){
+                if(ServerTopics.get(TopicName).ListMessages().size() > TopicMessages.get(TopicName).size()) {
+                    TopicMessages.replace(TopicName, ServerTopics.get(TopicName).ListMessages());
+                    System.out.println("There are new messages on " + TopicName + " topic");
+                }
+            }
+
+            myIterator.next();
+        }
     }
 
     private void remoteExportation(User myUser){
