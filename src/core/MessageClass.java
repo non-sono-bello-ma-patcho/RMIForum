@@ -18,6 +18,6 @@ public class MessageClass {
     }
 
     public String getFormatMsg(){
-        return getUser()+": "+getText();
+        return  "[" + getUser()+"]: "+getText();
     }
 }

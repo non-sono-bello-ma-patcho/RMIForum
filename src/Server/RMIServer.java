@@ -12,6 +12,7 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Scanner;
 
 public class RMIServer implements core.RMIServer {
@@ -19,30 +20,26 @@ public class RMIServer implements core.RMIServer {
     private HashMap<String, RMIClient> ClientList;
     private HashMap<String, String> Credential;
     private PoolClass pool;
-    final int clientPort = 1968;
+    Registry ServerRegistry;
+    private final int clientPort = 1968;
 
     private void serverSetUp(){
         System.setProperty("java.security.policy", "/tmp/RMIServer.policy");
         if (System.getSecurityManager()==null) System.setSecurityManager(new SecurityManager());
         RMIServer obj = new RMIServer();
-        Registry reg;
         String alias = "RMISharedServer";
         try {
-            reg=setRegistry(clientPort);
-            ExportNBind(reg, obj, alias,clientPort);
+            ServerRegistry=setRegistry(clientPort);
+            ExportNBind(ServerRegistry, obj, alias,clientPort);
 
             System.err.println("Server ready, type something to shutdown...");
             Scanner sc = new Scanner(System.in);
             System.err.println("You typed: "+sc.next());
-            shutDown(reg, obj, alias);
         } catch (RemoteException e) {
             System.err.println("Couldn't set registry, maybe you want to check stack trace?[S/n]");
             // showStackTrace(e);
         } catch (AlreadyBoundException e) {
             System.err.println("Couldn't export and bind, maybe you want to check stack trace?[S/n]");
-            // showStackTrace(e);
-        } catch (NotBoundException e) {
-            System.err.println("Couldn't unexport and unbind, maybe you want to check stack trace?[S/n]");
             // showStackTrace(e);
         }
     }
@@ -67,7 +64,7 @@ public class RMIServer implements core.RMIServer {
         reg.bind(alias, stub);
     }
 
-    private void RMIshutDown(Registry reg,RMIServer obj, String alias) throws RemoteException, NotBoundException {
+    public void RMIshutDown(Registry reg,RMIServer obj, String alias) throws RemoteException, NotBoundException {
         reg.unbind(alias);
         UnicastRemoteObject.unexportObject(obj, true);
     }
@@ -83,7 +80,6 @@ public class RMIServer implements core.RMIServer {
     }
 
     public void shutDown(){
-        RMIshutDown();
     }
 
     @Override
@@ -117,5 +113,15 @@ public class RMIServer implements core.RMIServer {
     public void ManagePublish(MessageClass msg, String TopicName) {
         Topics.get(TopicName).addMessage(msg);
         Notify(); // update local users convos...
+    }
+
+    @Override
+    public List<String> getConversation(String topicName){
+        return Topics.get(topicName).ListMessages();
+    }
+
+    @Override
+    public List<String> getAvailableTopic(){
+        return null;
     }
 }
