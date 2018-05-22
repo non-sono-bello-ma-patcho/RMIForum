@@ -10,16 +10,15 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+
 
 
 public class User implements RMIClient{
     public Registry pullRegistry; /* Registry used for pulling remote method */
     public Registry pushRegistry; /* Registry used for pushing remote method */
     public RMIServerInterface ServerConnected; /* that is the stub */
+    public RMIClient Stub;
     private String usurname;
     private String pswd;
     private boolean connected = false;
@@ -28,11 +27,34 @@ public class User implements RMIClient{
     private HashMap<String, Boolean> myTopics;
     private HashMap<String,List<String>> TopicMessages;
 
-    public User(String nick, String password, int port){
+    public User(String nick, String password){
         usurname = nick;
         pswd = password;
     }
 
+
+    /*optimization function */
+    /*that method charge the data from the connected server*/
+    private void ChargeData(){
+        if(connected == false){
+            System.err.println("You are not connected, the client is unable to charge data!");
+            return;
+        }
+        try {
+            ServerTopics = ServerConnected.getTopics(); /*inizializzo la hashmap ServerTopics */
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+        Set<String> mySetofKey = ServerTopics.keySet(); /* mi è utile per usare l'iterator */
+        Iterator<String> myIterator = mySetofKey.iterator();
+        while(myIterator.hasNext()){
+            String TopicName = ServerTopics.get(myIterator).getName();
+            myTopics.put(TopicName,false); /* inizializzo la hashmap contenete i miei topics (di default sono tutti false a connection time ) */
+            TopicMessages.put(TopicName,ServerTopics.get(TopicName).ListMessages()); /* inizializzo la mia hashmap contenente ogni topic coi relativi mex */
+            myIterator.next();
+        }
+
+    }
 
     /*method that try to connect/disconnect to the rmi server */
     private  boolean ConnectionRequest(String host, String op){
@@ -45,24 +67,12 @@ public class User implements RMIClient{
                 try {
                     pullRegistry = LocateRegistry.getRegistry(host);
                     ServerConnected = (RMIServerInterface) pullRegistry.lookup("RMISharedClient");
-                    /*remember to switch the lookup parameter with the right one */
                     InetAddress ia = InetAddress.getLocalHost();
                     boolean result = ServerConnected.ManageConnection(usurname,pswd,ia.getHostAddress(),op);
-
-                    /*sostanzialmente questa parte l'ho dedicata all'inizializzazione delle hashmap */
-                    if(result == true ){
+                    if(result == true ) {
                         connected = true;
-                        ServerTopics = ServerConnected.getTopics(); /*inizializzo la hashmap ServerTopics */
-                        Set<String> mySetofKey = ServerTopics.keySet(); /* mi è utile per usare l'iterator */
-                        Iterator<String> myIterator = mySetofKey.iterator();
-                        while(myIterator.hasNext()){
-                            String TopicName = ServerTopics.get(myIterator).getName();
-                            myTopics.put(TopicName,false); /* inizializzo la hashmap contenete i miei topics (di default sono tutti false a connection time ) */
-                            TopicMessages.put(TopicName,ServerTopics.get(TopicName).ListMessages()); /* inizializzo la mia hashmap contenente ogni topic coi relativi mex */
-                            myIterator.next();
-                        }
+                        ChargeData(); /*initialize the hashmaps */
                     }
-
                     return result;
                 } catch (RemoteException e) {
                     e.printStackTrace();
@@ -158,11 +168,11 @@ public class User implements RMIClient{
 
         try {
             InetAddress ia = InetAddress.getLocalHost();
-            System.setProperty("java.rmi.server.hostname", ia.getHostAddress());
+            System.setProperty("java.rmi.server.hostname", ia.getHostAddress()); /* should it be lochalhost????*/
             System.setProperty("java.security.policy", "file: ./RMIClient.policy");
             if(System.getSecurityManager()== null) System.setSecurityManager(new SecurityManager());
 
-            RMIClient Stub = (RMIClient) UnicastRemoteObject.exportObject(myUser,0);
+            Stub = (RMIClient) UnicastRemoteObject.exportObject(myUser,0);
             pushRegistry = LocateRegistry.createRegistry(myListeningPort);
             pushRegistry.bind("RMISharedClient",Stub);
         } catch (RemoteException e) {
@@ -173,6 +183,19 @@ public class User implements RMIClient{
             e.printStackTrace();
         }
     }
+
+    private void remoteUnbound(User myUser){
+        try {
+            UnicastRemoteObject.unexportObject(myUser,true);
+            pushRegistry.unbind("RMISharedClient");
+
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        } catch (NotBoundException e) {
+            e.printStackTrace();
+        }
+    }
+
 
     public String GetUsername(){
         return this.usurname;
@@ -186,7 +209,53 @@ public class User implements RMIClient{
         return this.connected;
     }
 
-    public static void main(String[] args){
 
+    /*that methods below are made only for debugging */
+    private void printMaps(){
+        return;
+    }
+
+
+
+
+
+/*that main is only a debugging, satiric version */
+    public static void main(String[] args){
+        User myUser = new User("Shinon","Cavolfiore92");
+        if(myUser.ConnectionRequest(args[0],"Connect") == false){
+            System.err.println("Something gone wrong,retry to connect");
+            System.exit(-1);/* se non riesce a connettersi è inutile fare altri test*/
+        }
+        myUser.remoteExportation(myUser);
+        try {
+            if(myUser.SubscribeRequest("Gloryhole","subscribe") == false)
+                System.err.println("Something gone wrong,retry to subscribe on Gloryhole topic");
+            if(myUser.SubscribeRequest("Deepthroat","subscribe") == false)
+                System.err.println("Something gone wrong,retry to subscribe on Deepthroat topic");
+            if(myUser.SubscribeRequest("MamminePastorine","subscribe") == false)
+                System.err.println("Something gone wrong,retry to subscribe on MamminePastorine topic ");
+            else{
+                MessageClass myMessage = new MessageClass("Shinon","Mammine scrivo in anonimo, nascosta dal nickname \" Shinon. "+
+                        "   Ieri mio marito mi ha chiesto di leccargli il carciofo, secondo voi cosa intendeva?? perchè io non capendo " +
+                        "sono andata a fare la spesa... non c'erano carciofi.. forse è per questo che non mi parla da 3 ore? "+
+                        "vostra,Claudia");
+                if(myUser.MessageRequest(myMessage,"MamminePastorine") == false){
+                    System.err.println("Something gone wrong, message not sent to MamminePastorine");
+                }
+                if(myUser.SubscribeRequest("MamminePastorine","unsubscribe") == false){
+                    System.err.println("unsubscribe operation to MamminePastorine topic failed");
+                }
+            }
+            Thread.sleep(60000); /* wait for some notifies */
+            if(myUser.ConnectionRequest(args[0],"disconnect") == false) {
+                System.err.println("Something gone wrong.. cannot disconnect from the server");
+                System.exit(-1);
+            }
+            myUser.remoteUnbound(myUser); /* unbound del registro */
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 }
