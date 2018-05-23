@@ -73,7 +73,7 @@ public class User implements RMIClient{
                     pullRegistry = LocateRegistry.getRegistry(host, 1969);
                     ServerConnected = (RMIServerInterface) pullRegistry.lookup("RMISharedServer");
                     InetAddress ia = InetAddress.getLocalHost();
-                    System.err.println("Exporting on: "+ia.getCanonicalHostName());
+                    System.err.println("Exporting on: "+ia.getHostAddress());
                     boolean result = ServerConnected.ManageConnection(usurname,pswd,ia.getHostAddress(),op);
                     if(result == true ) {
                         connected = true;
