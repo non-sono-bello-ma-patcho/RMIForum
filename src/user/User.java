@@ -238,8 +238,8 @@ public class User implements RMIClient{
 
 
 
-        System.setProperty("java.security.policy", "/home/shinon/IdeaProjects/RMIForum/src/user/RMIClient.policy");
-        if(System.getSecurityManager()== null) System.setSecurityManager(new SecurityManager());
+        //System.setProperty("java.security.policy", "/home/shinon/IdeaProjects/RMIForum/src/user/RMIClient.policy");
+        //if(System.getSecurityManager()== null) System.setSecurityManager(new SecurityManager());
         //System.setProperty("java.rmi.server.hostname", " localhost");
 
         User myUser = new User("Mortino", "111");
