@@ -31,6 +31,10 @@ public class User implements RMIClient{
     public User(String nick, String password){
         usurname = nick;
         pswd = password;
+        // magari le inizializiamo le strutture? Così, per sport dico.. [rollingflamingo]
+        ServerTopics = new HashMap<>();
+        myTopics = new HashMap<>();
+        TopicMessages = new HashMap<>(); // I'm not getting this...
     }
 
 
