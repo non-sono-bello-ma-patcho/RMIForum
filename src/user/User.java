@@ -66,8 +66,8 @@ public class User implements RMIClient{
                     return false;
                 }
                 try {
-                    pullRegistry = LocateRegistry.getRegistry(host);
-                    ServerConnected = (RMIServerInterface) pullRegistry.lookup("RMISharedClient");
+                    pullRegistry = LocateRegistry.getRegistry(host, 1968);
+                    ServerConnected = (RMIServerInterface) pullRegistry.lookup("RMISharedServer");
                     InetAddress ia = InetAddress.getLocalHost();
                     boolean result = ServerConnected.ManageConnection(usurname,pswd,ia.getHostAddress(),op);
                     if(result == true ) {
@@ -230,7 +230,7 @@ public class User implements RMIClient{
 /*that main is only a debugging, satiric version */
     public static void main(String[] args){
         User myUser = new User("Shinon","Cavolfiore92");
-        if(myUser.ConnectionRequest(args[0],"Connect") == false){
+        if(myUser.ConnectionRequest(args[0],"connect") == false){
             System.err.println("Something gone wrong,retry to connect");
             System.exit(-1);/* se non riesce a connettersi è inutile fare altri test*/
         }
