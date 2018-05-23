@@ -19,7 +19,7 @@ public class RMIServer implements core.RMIServerInterface {
     private HashMap<String, String> Credential;
     private PoolClass pool;
     private Registry ServerRegistry;
-    private final int clientPort = 1968;
+    private final int clientPort = 1969;
 
     private void serverSetUp(){
         System.setProperty("java.security.policy", "/tmp/RMIServer.policy");
@@ -57,7 +57,7 @@ public class RMIServer implements core.RMIServerInterface {
     private RMIClient getRemoteMethod(String host) throws RemoteException, NotBoundException {
         System.err.println("Trying to retrieve registry from host...");
         Registry registry = LocateRegistry.getRegistry(host, clientPort);
-        System.err.println("LookingUp for share Object");
+        System.err.print("LookingUp for share Object: ");
         return (RMIClient) registry.lookup("RMISharedClient");
     }
 
@@ -100,7 +100,9 @@ public class RMIServer implements core.RMIServerInterface {
         System.err.println("Adding ["+username+"] to Users!");
         // init conversation with client...
         try {
+            System.err.println("Trying to retrieve methods from "+address);
             RMIClient stub = getRemoteMethod(address);
+            System.err.println("DONE");
             if(ClientList.containsKey(username)) return false;
             ClientList.putIfAbsent(username, stub);
         } catch (RemoteException e) {
