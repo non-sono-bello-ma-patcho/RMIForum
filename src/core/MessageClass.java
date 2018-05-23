@@ -1,6 +1,8 @@
 package core;
 
-public class MessageClass {
+import java.io.Serializable;
+
+public class MessageClass implements Serializable {
     private String Text;
     private String User;
 

@@ -19,7 +19,8 @@ public class RMIServer implements core.RMIServerInterface {
     private HashMap<String, String> Credential;
     private PoolClass pool;
     private Registry ServerRegistry;
-    private final int clientPort = 1969;
+    private final int serverPort = 1969;
+    private final int clientPort = 1968;
 
     private void serverSetUp(){
         System.setProperty("java.security.policy", "/tmp/RMIServer.policy");
@@ -27,8 +28,8 @@ public class RMIServer implements core.RMIServerInterface {
         // RMIServer obj = new RMIServer();
         String alias = "RMISharedServer";
         try {
-            ServerRegistry=setRegistry(clientPort);
-            ExportNBind(ServerRegistry, this, alias,clientPort);
+            ServerRegistry=setRegistry(serverPort);
+            ExportNBind(ServerRegistry, this, alias,serverPort);
 
             InetAddress ia = InetAddress.getLocalHost();
             System.err.println("Server up and running on:"+ia.getHostAddress()+", type something to shutdown...");
@@ -106,9 +107,12 @@ public class RMIServer implements core.RMIServerInterface {
             if(ClientList.containsKey(username)) return false;
             ClientList.putIfAbsent(username, stub);
         } catch (RemoteException e) {
+            System.err.println("Remote problems pal....");
             e.printStackTrace();
+            return false;
         } catch (NotBoundException e) {
             System.err.println("Looks like there no shared object on that server...");
+            return false;
         }
         Credential.put(username, password);
         return true;
@@ -117,7 +121,8 @@ public class RMIServer implements core.RMIServerInterface {
 
     @Override
     public synchronized boolean ManageSubscribe(String TopicLabel, String User, boolean unsubscribe) throws RemoteException {
-        if(!unsubscribe) return Topics.get(TopicLabel).addUser(User);
+        System.err.println("["+User+"] subscribed to ["+TopicLabel+"] Topic!");
+        if(!unsubscribe) return (Topics.get(TopicLabel)).addUser(User);
         else return Topics.get(TopicLabel).RemoveUser(User);
     }
 
