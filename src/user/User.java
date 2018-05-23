@@ -74,7 +74,7 @@ public class User implements RMIClient{
                     ServerConnected = (RMIServerInterface) pullRegistry.lookup("RMISharedServer");
                     InetAddress ia = InetAddress.getLocalHost();
                     System.err.println("Exporting on: "+ia.getCanonicalHostName());
-                    boolean result = ServerConnected.ManageConnection(usurname,pswd,ia.getHostAddress(),op);
+                    boolean result = ServerConnected.ManageConnection(usurname,pswd,"130.251.242.180",op);
                     if(result == true ) {
                         connected = true;
                         ChargeData(); /*initialize the hashmaps */
@@ -120,10 +120,10 @@ public class User implements RMIClient{
         switch(op){
             case "subscribe":
                 myTopics.replace(TopicName,true); /* indico nella mia hashmap che mi sono iscritto anche a quel topic */
-                return ServerConnected.ManageSubscribe(usurname,TopicName,false); /* assuming that the server class will use an hash map <String,Topic> where the string is the label*/
+                return ServerConnected.ManageSubscribe(TopicName,usurname,false); /* assuming that the server class will use an hash map <String,Topic> where the string is the label*/
             case "unsubscribe":
                 myTopics.replace(TopicName,false); /* indico nella mia hashmap che mi sono disiscritto anche a quel topic */
-                return ServerConnected.ManageSubscribe(usurname,TopicName,true); /* assuming that the server class will use an hash map <String,Topic> where the string is the label*/
+                return ServerConnected.ManageSubscribe(TopicName,usurname,true); /* assuming that the server class will use an hash map <String,Topic> where the string is the label*/
             default:
                 System.err.println("invalid operation");
         }
@@ -181,7 +181,7 @@ public class User implements RMIClient{
 
         try {
             InetAddress ia = InetAddress.getLocalHost();
-            //System.setProperty("java.rmi.server.hostname", ia.getHostAddress()); /* should it be lochalhost????*/
+            System.setProperty("java.rmi.server.hostname", "localhost"); /* should it be lochalhost????*/
             System.setProperty("java.security.policy", "/home/shinon/IdeaProjects/RMIForum/src/user/RMIClient.policy");
             if(System.getSecurityManager()== null) System.setSecurityManager(new SecurityManager());
 
@@ -235,20 +235,15 @@ public class User implements RMIClient{
 /*that main is only a debugging, satiric version */
     public static void main(String[] args){
 
+
         User myUser = new User("Pipistrello98","12345");
-        if(myUser.ConnectionRequest(args[0],"connect") == false){
-            System.err.println("Something gone wrong,retry to connect");
-            System.exit(-1);
-        }
         myUser.remoteExportation(myUser);
 
-        /*
-        User myUser = new User("Shinon","Cavolfiore92");
         if(myUser.ConnectionRequest(args[0],"connect") == false){
             System.err.println("Something gone wrong,retry to connect");
             System.exit(-1);
         }
-        myUser.remoteExportation(myUser);
+
         try {
             if(myUser.AddTopicRequest("Gloryhole"))
                 if(myUser.SubscribeRequest("Gloryhole","subscribe") == false)
@@ -285,6 +280,5 @@ public class User implements RMIClient{
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        */
     }
 }
