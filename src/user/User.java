@@ -70,9 +70,10 @@ public class User implements RMIClient{
                     return false;
                 }
                 try {
-                    pullRegistry = LocateRegistry.getRegistry(host, 1968);
+                    pullRegistry = LocateRegistry.getRegistry(host, 1969);
                     ServerConnected = (RMIServerInterface) pullRegistry.lookup("RMISharedServer");
                     InetAddress ia = InetAddress.getLocalHost();
+                    System.err.println("Exporting on: "+ia.getCanonicalHostName());
                     boolean result = ServerConnected.ManageConnection(usurname,pswd,ia.getHostAddress(),op);
                     if(result == true ) {
                         connected = true;
@@ -180,11 +181,11 @@ public class User implements RMIClient{
 
         try {
             InetAddress ia = InetAddress.getLocalHost();
-            System.setProperty("java.rmi.server.hostname", ia.getHostAddress()); /* should it be lochalhost????*/
+            //System.setProperty("java.rmi.server.hostname", ia.getHostAddress()); /* should it be lochalhost????*/
             System.setProperty("java.security.policy", "/home/shinon/IdeaProjects/RMIForum/src/user/RMIClient.policy");
             if(System.getSecurityManager()== null) System.setSecurityManager(new SecurityManager());
 
-            Stub = (core.RMIClient) UnicastRemoteObject.exportObject(myUser,myListeningPort);
+            Stub = (core.RMIClient) UnicastRemoteObject.exportObject(this,myListeningPort);
             pushRegistry = LocateRegistry.createRegistry(myListeningPort);
             pushRegistry.bind("RMISharedClient",Stub);
         } catch (RemoteException e) {
@@ -233,41 +234,57 @@ public class User implements RMIClient{
 
 /*that main is only a debugging, satiric version */
     public static void main(String[] args){
+
+        User myUser = new User("Pipistrello98","12345");
+        if(myUser.ConnectionRequest(args[0],"connect") == false){
+            System.err.println("Something gone wrong,retry to connect");
+            System.exit(-1);
+        }
+        myUser.remoteExportation(myUser);
+
+        /*
         User myUser = new User("Shinon","Cavolfiore92");
         if(myUser.ConnectionRequest(args[0],"connect") == false){
             System.err.println("Something gone wrong,retry to connect");
-            System.exit(-1);/* se non riesce a connettersi è inutile fare altri test*/
+            System.exit(-1);
         }
         myUser.remoteExportation(myUser);
         try {
-            if(myUser.SubscribeRequest("Gloryhole","subscribe") == false)
-                System.err.println("Something gone wrong,retry to subscribe on Gloryhole topic");
-            if(myUser.SubscribeRequest("Deepthroat","subscribe") == false)
-                System.err.println("Something gone wrong,retry to subscribe on Deepthroat topic");
-            if(myUser.SubscribeRequest("MamminePastorine","subscribe") == false)
-                System.err.println("Something gone wrong,retry to subscribe on MamminePastorine topic ");
-            else{
-                MessageClass myMessage = new MessageClass("Shinon","Mammine scrivo in anonimo, nascosta dal nickname \" Shinon. "+
+            if(myUser.AddTopicRequest("Gloryhole"))
+                if(myUser.SubscribeRequest("Gloryhole","subscribe") == false)
+                    System.err.println("Something gone wrong,retry to subscribe on Gloryhole topic");
+            else System.err.println("cannot add Gloryhole");
+            if(myUser.AddTopicRequest("Deepthroat"))
+                if(myUser.SubscribeRequest("Deepthroat","subscribe") == false)
+                    System.err.println("Something gone wrong,retry to subscribe on Deepthroat topic");
+            else System.err.println("cannot add Deepthroat");
+            if(myUser.AddTopicRequest("MamminePastorine"))
+                if(myUser.SubscribeRequest("MamminePastorine","subscribe") == false)
+                    System.err.println("Something gone wrong,retry to subscribe on MamminePastorine topic ");
+                else{
+                    MessageClass myMessage = new MessageClass("Shinon","Mammine scrivo in anonimo, nascosta dal nickname \" Shinon. "+
                         "   Ieri mio marito mi ha chiesto di leccargli il carciofo, secondo voi cosa intendeva?? perchè io non capendo " +
                         "sono andata a fare la spesa... non c'erano carciofi.. forse è per questo che non mi parla da 3 ore? "+
                         "vostra,Claudia");
-                if(myUser.MessageRequest(myMessage,"MamminePastorine") == false){
+                    if(myUser.MessageRequest(myMessage,"MamminePastorine") == false){
                     System.err.println("Something gone wrong, message not sent to MamminePastorine");
                 }
                 if(myUser.SubscribeRequest("MamminePastorine","unsubscribe") == false){
                     System.err.println("unsubscribe operation to MamminePastorine topic failed");
                 }
             }
-            Thread.sleep(60000); /* wait for some notifies */
+            else System.err.println("cannot add MamminePastorine");
+            Thread.sleep(60000);
             if(myUser.ConnectionRequest(args[0],"disconnect") == false) {
                 System.err.println("Something gone wrong.. cannot disconnect from the server");
                 System.exit(-1);
             }
-            myUser.remoteUnbound(myUser); /* unbound del registro */
+            myUser.remoteUnbound(myUser);
         } catch (RemoteException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        */
     }
 }
