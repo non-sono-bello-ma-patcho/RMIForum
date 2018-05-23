@@ -106,7 +106,7 @@ public class RMIServer implements core.RMIServerInterface {
         } catch (RemoteException e) {
             e.printStackTrace();
         } catch (NotBoundException e) {
-            e.printStackTrace();
+            System.err.println("Looks like there no shared object on that server...");
         }
         Credential.put(username, password);
         return true;
