@@ -19,7 +19,7 @@ public class User implements RMIClient{
     public Registry pullRegistry; /* Registry used for pulling remote method */
     public Registry pushRegistry; /* Registry used for pushing remote method */
     public RMIServerInterface ServerConnected; /* that is the stub */
-    public RMIClient Stub;
+    public core.RMIClient Stub;
     private String usurname;
     private String pswd;
     private boolean connected = false;
@@ -177,10 +177,10 @@ public class User implements RMIClient{
         try {
             InetAddress ia = InetAddress.getLocalHost();
             System.setProperty("java.rmi.server.hostname", ia.getHostAddress()); /* should it be lochalhost????*/
-            System.setProperty("java.security.policy", "file: ./RMIClient.policy");
+            System.setProperty("java.security.policy", "/home/shinon/IdeaProjects/RMIForum/src/user/RMIClient.policy");
             if(System.getSecurityManager()== null) System.setSecurityManager(new SecurityManager());
 
-            Stub = (RMIClient) UnicastRemoteObject.exportObject(myUser,1968);
+            Stub = (core.RMIClient) UnicastRemoteObject.exportObject(myUser,myListeningPort);
             pushRegistry = LocateRegistry.createRegistry(myListeningPort);
             pushRegistry.bind("RMISharedClient",Stub);
         } catch (RemoteException e) {
