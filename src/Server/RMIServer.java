@@ -2,6 +2,8 @@ package Server;
 
 import core.*;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.rmi.AlreadyBoundException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
@@ -11,7 +13,7 @@ import java.rmi.server.UnicastRemoteObject;
 import java.util.HashMap;
 import java.util.Scanner;
 
-public class RMIServerInterface implements core.RMIServerInterface {
+public class RMIServer implements core.RMIServerInterface {
     private HashMap<String, TopicClass> Topics;
     private HashMap<String, RMIClient> ClientList;
     private HashMap<String, String> Credential;
@@ -20,24 +22,31 @@ public class RMIServerInterface implements core.RMIServerInterface {
     private final int clientPort = 1968;
 
     private void serverSetUp(){
-        System.setProperty("java.security.policy", "/tmp/RMIServerInterface.policy");
+        System.setProperty("java.security.policy", "/tmp/RMIServer.policy");
         if (System.getSecurityManager()==null) System.setSecurityManager(new SecurityManager());
-        // RMIServerInterface obj = new RMIServerInterface();
+        // RMIServer obj = new RMIServer();
         String alias = "RMISharedServer";
         try {
             ServerRegistry=setRegistry(clientPort);
             ExportNBind(ServerRegistry, this, alias,clientPort);
 
-            System.err.println("Server ready, type something to shutdown...");
+            InetAddress ia = InetAddress.getLocalHost();
+            System.err.println("Server up and running on:"+ia.getHostAddress()+", type something to shutdown...");
             Scanner sc = new Scanner(System.in);
             System.err.println("You typed: "+sc.next());
+            RMIshutDown();
         } catch (RemoteException e) {
             System.err.println("Couldn't set registry, maybe you want to check stack trace?[S/n]");
             showStackTrace(e);
         } catch (AlreadyBoundException e) {
             System.err.println("Couldn't export and bind, maybe you want to check stack trace?[S/n]");
             showStackTrace(e);
-        }
+        } catch (UnknownHostException e) {
+            System.err.println("Couldn't get localhost, maybe you want to check stack trace?[S/n]");
+            showStackTrace(e);
+        } catch (NotBoundException e) {
+            System.err.println("Couldn't unbound, maybe you want to check stack trace?[S/n]");
+            showStackTrace(e);        }
     }
 
     static void showStackTrace(Exception e){
@@ -60,7 +69,7 @@ public class RMIServerInterface implements core.RMIServerInterface {
         }
     }
 
-    private void ExportNBind(Registry reg, RMIServerInterface obj, String alias, int port) throws AlreadyBoundException, RemoteException {
+    private void ExportNBind(Registry reg, RMIServer obj, String alias, int port) throws AlreadyBoundException, RemoteException {
         RMIServerInterface stub = (RMIServerInterface) UnicastRemoteObject.exportObject(obj, port);
         reg.bind(alias, stub);
     }
@@ -68,9 +77,10 @@ public class RMIServerInterface implements core.RMIServerInterface {
     public void RMIshutDown() throws RemoteException, NotBoundException {
         ServerRegistry.unbind("RMISharedServer");
         UnicastRemoteObject.unexportObject(this, true);
+        pool.StopPool();
     }
 
-    public RMIServerInterface(){
+    public RMIServer(){
         Topics = new HashMap<>();
         ClientList = new HashMap<>();
         Credential = new HashMap<>();
@@ -129,14 +139,14 @@ public class RMIServerInterface implements core.RMIServerInterface {
     }
 
     @Override
-    public synchronized boolean addTopic(String TopicName){
+    public synchronized boolean addTopic(String TopicName, String TopicOwner){
         System.err.println("Adding ["+TopicName+"] to Topics!");
         if(Topics.containsKey(TopicName)) return false;
-        Topics.put(TopicName, new TopicClass(TopicName));
+        Topics.put(TopicName, new TopicClass(TopicName, TopicOwner));
         return true;
     }
 
     public static void main(String [] args){
-        RMIServerInterface rs = new RMIServerInterface();
+        RMIServer rs = new RMIServer();
     }
 }

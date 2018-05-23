@@ -6,10 +6,11 @@ import java.util.List;
 public class TopicClass {
     private List<MessageClass> Convo;
     private List<String> Users;
-    private String Name;
+    private String Name, Owner;
 
-    public TopicClass(String name){
+    public TopicClass(String name, String owner){
         Name = name;
+        Owner = owner;
         Convo = new ArrayList<>();
         Users = new ArrayList<>();
     }

@@ -3,6 +3,7 @@ import core.*;
 
 
 import java.net.InetAddress;
+import java.net.ServerSocket;
 import java.net.UnknownHostException;
 import java.rmi.AlreadyBoundException;
 import java.rmi.NotBoundException;
@@ -125,9 +126,16 @@ public class User implements RMIClient{
         /*if the topic doesn't exist, maybe the server could create it and subscribe that user and than return (?)*/
     }
 
+    private boolean AddTopicRequest(String TopicName) throws RemoteException {
+        if(!connected){
+            System.err.println("Permission denied! you are not connected!");
+            return false;
+        }
+        return ServerConnected.addTopic(TopicName, usurname);
+    }
 
     private boolean MessageRequest(MessageClass msg,String topicName) throws RemoteException {
-        if(connected == false){
+        if(!connected){
             System.err.println("Permission denied! you are not connected!");
             return false;
         }
@@ -136,7 +144,7 @@ public class User implements RMIClient{
     }
 
     public void CLiNotify() throws RemoteException {
-        if(connected == false){
+        if(!connected){
             System.err.println("Permission denied! The client isn't connected");
             return;
         }
