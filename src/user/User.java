@@ -180,7 +180,7 @@ public class User implements RMIClient{
             System.setProperty("java.security.policy", "file: ./RMIClient.policy");
             if(System.getSecurityManager()== null) System.setSecurityManager(new SecurityManager());
 
-            Stub = (RMIClient) UnicastRemoteObject.exportObject(myUser,0);
+            Stub = (RMIClient) UnicastRemoteObject.exportObject(myUser,1968);
             pushRegistry = LocateRegistry.createRegistry(myListeningPort);
             pushRegistry.bind("RMISharedClient",Stub);
         } catch (RemoteException e) {
