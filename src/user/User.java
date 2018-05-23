@@ -24,16 +24,20 @@ public class User implements RMIClient{
     private String pswd;
     private boolean connected = false;
     private final int myListeningPort = 1099;
+    private final int serverListeningPort = 1969;
+    private RMIUtility serverHandler;
     private HashMap<String, TopicClass> ServerTopics;
     private HashMap<String, Boolean> myTopics;
     private HashMap<String,List<String>> TopicMessages;
 
-    public User(String nick, String password){
+    public User(String nick, String password) throws UnknownHostException {
         username = nick;
         pswd = password;
         ServerTopics = new HashMap<>();
         myTopics = new HashMap<>();
         TopicMessages = new HashMap<>();
+        serverHandler = new RMIUtility(pushRegistry, myListeningPort, serverListeningPort, "RMISharedClient", "RMISharedServer");
+        serverHandler.serverSetUp(this);
     }
 
 
@@ -179,11 +183,11 @@ public class User implements RMIClient{
         }
         */
     }
-
+/*
     private void remoteExportation(User myUser){
 
         try {
-            /*InetAddress ia = InetAddress.getLocalHost();*/
+            /*InetAddress ia = InetAddress.getLocalHost();
             Stub = (core.RMIClient) UnicastRemoteObject.exportObject(this,1099);
             pushRegistry = LocateRegistry.createRegistry(myListeningPort);
             pushRegistry.bind("RMISharedClient",Stub);
@@ -205,7 +209,7 @@ public class User implements RMIClient{
             e.printStackTrace();
         }
     }
-
+*/
 
     public String GetUsername(){
         return this.username;
@@ -230,16 +234,16 @@ public class User implements RMIClient{
 
 
 /*that main is only a debugging, satiric version */
-    public static void main(String[] args) {
+    public static void main(String[] args) throws UnknownHostException {
 
 
 
         System.setProperty("java.security.policy", "/home/shinon/IdeaProjects/RMIForum/src/user/RMIClient.policy");
         if(System.getSecurityManager()== null) System.setSecurityManager(new SecurityManager());
-        System.setProperty("java.rmi.server.hostname", " localhost");
+        //System.setProperty("java.rmi.server.hostname", " localhost");
 
         User myUser = new User("Mortino", "111");
-        myUser.remoteExportation(myUser);
+        //myUser.remoteExportation(myUser);
 
         if (myUser.ConnectionRequest(args[0], "connect") == false) {
             System.err.println("Something gone wrong,retry to connect");
