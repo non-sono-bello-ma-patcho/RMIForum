@@ -23,9 +23,9 @@ public class RMIServer implements core.RMIServerInterface {
     private Registry ServerRegistry;
     private final int serverPort = 1969;
     private final int clientPort = 1099;
-
+    private RMIUtility serverHandler;
     /*------------------------Auxiliary functions--------------------------*/
-
+/*
     private void serverSetUp() throws UnknownHostException {
         System.setProperty("java.rmi.server.hostname", InetAddress.getLocalHost().getHostAddress());
         System.setProperty("java.security.policy", "/tmp/RMIServer.policy");
@@ -56,8 +56,8 @@ public class RMIServer implements core.RMIServerInterface {
     }
 
     static void showStackTrace(Exception e){
-        /*Scanner sc = new Scanner(System.in);
-        if(sc.nextInt()!='n')*/ e.printStackTrace();
+        Scanner sc = new Scanner(System.in);
+        if(sc.nextInt()!='n') e.printStackTrace();
     }
 
     private RMIClient getRemoteMethod(String host) throws RemoteException, NotBoundException {
@@ -83,9 +83,8 @@ public class RMIServer implements core.RMIServerInterface {
     public void RMIshutDown() throws RemoteException, NotBoundException {
         ServerRegistry.unbind("RMISharedServer");
         UnicastRemoteObject.unexportObject(this, true);
-        pool.StopPool();
     }
-
+*/
     /*----------------------------------------------------------------------*/
 
     public RMIServer(){
@@ -93,17 +92,17 @@ public class RMIServer implements core.RMIServerInterface {
         ClientList = new HashMap<>();
         Credential = new HashMap<>();
         pool = new PoolClass();
-
+        serverHandler = new RMIUtility(ServerRegistry, serverPort, clientPort, "RMISharedServer", "RMISharedClient");
         // here start the server...
         try {
-            serverSetUp();
+            serverHandler.serverSetUp(this);
         } catch (UnknownHostException e) {
             System.err.println("Couldn't setup server...");
         }
     }
 
     public void shutDown() throws RemoteException, NotBoundException {
-        RMIshutDown();
+        serverHandler.RMIshutDown(this);
         pool.StopPool();
     }
 
@@ -113,7 +112,7 @@ public class RMIServer implements core.RMIServerInterface {
         // init conversation with client...
         try {
             System.err.println("Trying to retrieve methods from "+address);
-            RMIClient stub = getRemoteMethod(address);
+            RMIClient stub = serverHandler.getRemoteMethod(address);
             System.err.println("DONE");
             stub.CLiNotify();
             if(ClientList.containsKey(username)) return false;
