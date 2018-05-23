@@ -20,7 +20,7 @@ public class User implements RMIClient{
     public Registry pushRegistry; /* Registry used for pushing remote method */
     public RMIServerInterface ServerConnected; /* that is the stub */
     public core.RMIClient Stub;
-    private String usurname;
+    private String username;
     private String pswd;
     private boolean connected = false;
     private final int myListeningPort = 1968;
@@ -29,19 +29,18 @@ public class User implements RMIClient{
     private HashMap<String,List<String>> TopicMessages;
 
     public User(String nick, String password){
-        usurname = nick;
+        username = nick;
         pswd = password;
-        // magari le inizializiamo le strutture? Così, per sport dico.. [rollingflamingo]
         ServerTopics = new HashMap<>();
         myTopics = new HashMap<>();
-        TopicMessages = new HashMap<>(); // I'm not getting this...
+        TopicMessages = new HashMap<>();
     }
 
 
     /*optimization function */
     /*that method charge the data from the connected server*/
     private void ChargeData(){
-        if(connected == false){
+        if(!connected){
             System.err.println("You are not connected, the client is unable to charge data!");
             return;
         }
@@ -65,7 +64,7 @@ public class User implements RMIClient{
     private  boolean ConnectionRequest(String host, String op){
         switch(op){
             case "connect":
-                if ( connected == true){
+                if ( connected){
                     System.err.println("You are already connected");
                     return false;
                 }
@@ -74,8 +73,8 @@ public class User implements RMIClient{
                     ServerConnected = (RMIServerInterface) pullRegistry.lookup("RMISharedServer");
                     InetAddress ia = InetAddress.getLocalHost();
                     System.err.println("Exporting on: "+ia.getCanonicalHostName());
-                    boolean result = ServerConnected.ManageConnection(usurname,pswd,"130.251.242.180",op);
-                    if(result == true ) {
+                    boolean result = ServerConnected.ManageConnection(username,pswd,"130.251.242.180",op);
+                    if(result) {
                         connected = true;
                         ChargeData(); /*initialize the hashmaps */
                     }
@@ -90,14 +89,14 @@ public class User implements RMIClient{
                 break;
 
             case "disconnect":
-                if(connected == false){
+                if(!connected){
                     System.err.println("You are already disconnected");
                     return true;
                 }
                 try{
                     InetAddress ia = InetAddress.getLocalHost();
-                    boolean result = ServerConnected.ManageConnection(usurname,pswd,ia.getHostAddress(),op);
-                    if(result == true ) connected = false;
+                    boolean result = ServerConnected.ManageConnection(username,pswd,ia.getHostAddress(),op);
+                    if(result ) connected = false;
                     return result;
                 } catch (UnknownHostException e) {
                     e.printStackTrace();
@@ -113,17 +112,17 @@ public class User implements RMIClient{
 
 /* that method is for the topic registration..*/
     private boolean SubscribeRequest(String TopicName, String op) throws RemoteException {
-        if(connected == false){
+        if(!connected){
             System.err.println("Permission denied! you are not connected!");
             return false;
         }
         switch(op){
             case "subscribe":
                 myTopics.replace(TopicName,true); /* indico nella mia hashmap che mi sono iscritto anche a quel topic */
-                return ServerConnected.ManageSubscribe(TopicName,usurname,false); /* assuming that the server class will use an hash map <String,Topic> where the string is the label*/
+                return ServerConnected.ManageSubscribe(TopicName,username,false); /* assuming that the server class will use an hash map <String,Topic> where the string is the label*/
             case "unsubscribe":
                 myTopics.replace(TopicName,false); /* indico nella mia hashmap che mi sono disiscritto anche a quel topic */
-                return ServerConnected.ManageSubscribe(TopicName,usurname,true); /* assuming that the server class will use an hash map <String,Topic> where the string is the label*/
+                return ServerConnected.ManageSubscribe(TopicName,username,true); /* assuming that the server class will use an hash map <String,Topic> where the string is the label*/
             default:
                 System.err.println("invalid operation");
         }
@@ -136,7 +135,7 @@ public class User implements RMIClient{
             System.err.println("Permission denied! you are not connected!");
             return false;
         }
-        return ServerConnected.addTopic(TopicName, usurname);
+        return ServerConnected.addTopic(TopicName, username);
     }
 
     private boolean MessageRequest(MessageClass msg,String topicName) throws RemoteException {
@@ -166,7 +165,7 @@ public class User implements RMIClient{
                 myTopics.put(TopicName, false);
                 TopicMessages.put(TopicName,ServerTopics.get(TopicName).ListMessages());
             }
-            else if(myTopics.get(TopicName) == true){
+            else if(myTopics.get(TopicName)){
                 if(ServerTopics.get(TopicName).ListMessages().size() > TopicMessages.get(TopicName).size()) {
                     TopicMessages.replace(TopicName, ServerTopics.get(TopicName).ListMessages());
                     System.out.println("There are new messages on " + TopicName + " topic");
@@ -211,7 +210,7 @@ public class User implements RMIClient{
 
 
     public String GetUsername(){
-        return this.usurname;
+        return this.username;
     }
 
     public String GetPassword(){
@@ -233,17 +232,42 @@ public class User implements RMIClient{
 
 
 /*that main is only a debugging, satiric version */
-    public static void main(String[] args){
+    public static void main(String[] args) {
 
 
-        User myUser = new User("Pipistrello98","12345");
+        User myUser = new User("Pipistrello98", "12345");
         myUser.remoteExportation(myUser);
 
-        if(myUser.ConnectionRequest(args[0],"connect") == false){
+        if (myUser.ConnectionRequest(args[0], "connect") == false) {
             System.err.println("Something gone wrong,retry to connect");
             System.exit(-1);
         }
 
+        try {
+            if (myUser.AddTopicRequest("Gloryhole"))
+                System.out.println("already exist");
+            else System.out.println("adding the new topic...");
+            if (!myUser.SubscribeRequest("Gloryhole", "subscribe"))
+                System.err.println("Something gone wrong,retry to subscribe on Gloryhole topic");
+            else {
+                MessageClass myMessage = new MessageClass("Pipistrello98", "secondo voi ci entra un pene largo 7 cm?");
+                if (!myUser.MessageRequest(myMessage, "Gloryhole")) {
+                    System.err.println("Something gone wrong, message not sent to Gloryhole");
+
+                }
+                else System.out.println("message sent");
+            }
+        }catch (RemoteException e) {
+            e.printStackTrace();
+        }
+        
+        
+        
+        
+        
+        
+        
+/*
         try {
             if(myUser.AddTopicRequest("Gloryhole"))
                 if(myUser.SubscribeRequest("Gloryhole","subscribe") == false)
@@ -280,5 +304,7 @@ public class User implements RMIClient{
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        */
+
+        }
     }
-}
