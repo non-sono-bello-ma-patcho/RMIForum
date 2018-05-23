@@ -23,7 +23,7 @@ public class User implements RMIClient{
     private String username;
     private String pswd;
     private boolean connected = false;
-    private final int myListeningPort = 1968;
+    private final int myListeningPort = 1099;
     private HashMap<String, TopicClass> ServerTopics;
     private HashMap<String, Boolean> myTopics;
     private HashMap<String,List<String>> TopicMessages;
@@ -72,7 +72,7 @@ public class User implements RMIClient{
                     pullRegistry = LocateRegistry.getRegistry(host, 1969);
                     ServerConnected = (RMIServerInterface) pullRegistry.lookup("RMISharedServer");
                     InetAddress ia = InetAddress.getLocalHost();
-                    System.err.println("Exporting on: "+ia.getCanonicalHostName());
+                    System.out.println(java.net.InetAddress.getLocalHost());
                     boolean result = ServerConnected.ManageConnection(username,pswd,"130.251.242.180",op);
                     if(result) {
                         connected = true;
@@ -147,14 +147,17 @@ public class User implements RMIClient{
         return true;
     }
 
+    @Override
     public void CLiNotify() throws RemoteException {
         if(!connected){
             System.err.println("Permission denied! The client isn't connected");
             return;
         }
+        System.out.println("coglione di merda");
+        /*
         ServerTopics = ServerConnected.getTopics();
 
-        /*check if the notify has come for a new topic creation */
+
         Set<String> setTopic = ServerTopics.keySet();
         Iterator<String> myIterator = setTopic.iterator();
         while(myIterator.hasNext()){
@@ -174,24 +177,19 @@ public class User implements RMIClient{
 
             myIterator.next();
         }
+        */
     }
 
     private void remoteExportation(User myUser){
 
         try {
-            InetAddress ia = InetAddress.getLocalHost();
-            System.setProperty("java.rmi.server.hostname", "localhost"); /* should it be lochalhost????*/
-            System.setProperty("java.security.policy", "/home/shinon/IdeaProjects/RMIForum/src/user/RMIClient.policy");
-            if(System.getSecurityManager()== null) System.setSecurityManager(new SecurityManager());
-
-            Stub = (core.RMIClient) UnicastRemoteObject.exportObject(this,myListeningPort);
+            /*InetAddress ia = InetAddress.getLocalHost();*/
+            Stub = (core.RMIClient) UnicastRemoteObject.exportObject(this,1099);
             pushRegistry = LocateRegistry.createRegistry(myListeningPort);
             pushRegistry.bind("RMISharedClient",Stub);
         } catch (RemoteException e) {
             e.printStackTrace();
         } catch (AlreadyBoundException e) {
-            e.printStackTrace();
-        } catch (UnknownHostException e) {
             e.printStackTrace();
         }
     }
@@ -235,7 +233,12 @@ public class User implements RMIClient{
     public static void main(String[] args) {
 
 
-        User myUser = new User("Pipistrello98", "12345");
+
+        System.setProperty("java.security.policy", "/home/shinon/IdeaProjects/RMIForum/src/user/RMIClient.policy");
+        if(System.getSecurityManager()== null) System.setSecurityManager(new SecurityManager());
+        System.setProperty("java.rmi.server.hostname", " localhost");
+
+        User myUser = new User("Mortino", "111");
         myUser.remoteExportation(myUser);
 
         if (myUser.ConnectionRequest(args[0], "connect") == false) {
@@ -250,7 +253,7 @@ public class User implements RMIClient{
             if (!myUser.SubscribeRequest("Gloryhole", "subscribe"))
                 System.err.println("Something gone wrong,retry to subscribe on Gloryhole topic");
             else {
-                MessageClass myMessage = new MessageClass("Pipistrello98", "secondo voi ci entra un pene largo 7 cm?");
+                MessageClass myMessage = new MessageClass("Mortino", "Sarebbe bello vedere i piedi di Re Julien da quel buchino!");
                 if (!myUser.MessageRequest(myMessage, "Gloryhole")) {
                     System.err.println("Something gone wrong, message not sent to Gloryhole");
 
