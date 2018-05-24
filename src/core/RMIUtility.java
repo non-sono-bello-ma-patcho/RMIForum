@@ -79,9 +79,9 @@ public class RMIUtility {
         reg.bind(alias, stub);
     }
 
-    public void RMIshutDown(Object obj) throws RemoteException, NotBoundException {
-        ServerRegistry.unbind("RMISharedServer");
-        UnicastRemoteObject.unexportObject((Remote) obj, true);
+    public void RMIshutDown(Remote obj) throws RemoteException, NotBoundException {
+        ServerRegistry.unbind(Salias);
+        UnicastRemoteObject.unexportObject(obj, true);
     }
 
 }
