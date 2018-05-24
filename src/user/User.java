@@ -77,7 +77,7 @@ public class User implements RMIClient{
                     ServerConnected = (RMIServerInterface) pullRegistry.lookup("RMISharedServer");
                     InetAddress ia = InetAddress.getLocalHost();
                     System.out.println(java.net.InetAddress.getLocalHost());
-                    boolean result = ServerConnected.ManageConnection(username,pswd,InetAddress.getLocalHost().getHostAddress(),op);
+                    boolean result = ServerConnected.ManageConnection(username,pswd,"192.168.1.113",op);
                     if(result) {
                         connected = true;
                         ChargeData(); /*initialize the hashmaps */
