@@ -8,7 +8,7 @@ import java.util.HashMap;
 public interface RMIServerInterface extends Remote {
     boolean ManageConnection(String username, String password, String address, String op) throws RemoteException;
     boolean ManageSubscribe(String TopicLabel, String User, boolean unsubscribe) throws RemoteException; /* metodo per iscrizione a topic... manca la dichiarazione di un metdodo per iscrizione al forum stesso*/
-    void Notify() throws RemoteException; // triggers message show on client...
+    void Notify(String TopicLabel, String TriggeredBy, boolean type) throws RemoteException; // triggers message show on client...
     void ManagePublish(MessageClass msg, String TopicName) throws RemoteException; // add message to  a topic convo
     boolean addTopic(String TopicName, String TopicOwner) throws RemoteException;
     HashMap<String, TopicClass> getTopics() throws RemoteException;

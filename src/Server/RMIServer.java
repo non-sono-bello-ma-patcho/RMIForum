@@ -145,13 +145,13 @@ public class RMIServer implements core.RMIServerInterface {
     }
 
     @Override
-    public void Notify() throws RemoteException {
+    public void Notify(String TopicLabel, String TriggeredBy, boolean type) throws RemoteException {
         // call remotely users methods for all client registered...0
         // submit callable for each client....
         System.err.println("Send notify to all clients:");
         for(String s : ClientList.keySet()){
             System.err.print("Notifying ["+s+"]:");
-            ClientList.get(s).CLiNotify();
+            ClientList.get(s).CLiNotify(TopicLabel, TriggeredBy, type);
             System.err.println("DONE");
         }
     }
@@ -160,7 +160,7 @@ public class RMIServer implements core.RMIServerInterface {
     public void ManagePublish(MessageClass msg, String TopicName) throws RemoteException {
         System.err.println("Publishing |"+msg.getFormatMsg()+"| to ["+TopicName+"]!");
         (Topics.get(TopicName)).addMessage(msg);
-        Notify(); // update local users convos...
+        Notify(TopicName, msg.getUser(), true); // update local users convos...
     }
 
     @Override
@@ -169,10 +169,11 @@ public class RMIServer implements core.RMIServerInterface {
     }
 
     @Override
-    public synchronized boolean addTopic(String TopicName, String TopicOwner){
+    public synchronized boolean addTopic(String TopicName, String TopicOwner) throws RemoteException {
         if(Topics.containsKey(TopicName)) return false;
         System.err.println("Adding ["+TopicName+"] to Topics!");
         Topics.put(TopicName, new TopicClass(TopicName, TopicOwner));
+        Notify(TopicName, TopicOwner, false);
         return true;
     }
 

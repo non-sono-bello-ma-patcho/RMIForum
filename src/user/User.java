@@ -152,12 +152,18 @@ public class User implements RMIClient{
     }
 
     @Override
-    public void CLiNotify() throws RemoteException {
+    public void CLiNotify(String TopicLabel, String TriggeredBy, boolean type) throws RemoteException {
         if(!connected){
             System.err.println("Permission denied! The client isn't connected");
             return;
         }
-        System.out.println("coglione di merda");
+        if(type){
+            System.out.println("Hai un nuovo messaggio da "+TriggeredBy+" su "+TopicLabel);
+        }
+        else{
+            System.out.println(TriggeredBy+" ha creato il topic "+TopicLabel);
+        }
+
         /*
         ServerTopics = ServerConnected.getTopics();
 
