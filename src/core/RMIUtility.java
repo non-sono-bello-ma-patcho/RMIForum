@@ -29,9 +29,9 @@ public class RMIUtility {
     }
 
     public void serverSetUp(Object obj) throws UnknownHostException {
-        //System.setProperty("java.rmi.server.hostname", InetAddress.getLocalHost().getHostAddress());
+        System.setProperty("java.rmi.server.hostname", InetAddress.getLocalHost().getHostAddress());
         System.setProperty("java.security.policy", "/tmp/RMIServer.policy");
-        //if (System.getSecurityManager()==null) System.setSecurityManager(new SecurityManager());
+        if (System.getSecurityManager()==null) System.setSecurityManager(new SecurityManager());
         // RMIServer obj = new RMIServer();
         try {
             ServerRegistry=setRegistry(serverPort);

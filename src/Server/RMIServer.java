@@ -117,7 +117,6 @@ public class RMIServer implements core.RMIServerInterface {
             System.err.println("Trying to retrieve methods from "+address);
             RMIClient stub = serverHandler.getRemoteMethod(address);
             System.err.println("DONE");
-            stub.CLiNotify();
             if(ClientList.containsKey(username)) return false;
             ClientList.putIfAbsent(username, stub);
         } catch (RemoteException e) {
