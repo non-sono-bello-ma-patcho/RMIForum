@@ -21,14 +21,14 @@ public class RMIServer implements core.RMIServerInterface {
     private HashMap<String, String> Credential;
     private PoolClass pool;
     private Registry ServerRegistry;
-    private final int serverPort = 1969;
+    private final int serverPort = 8000;
     private final int clientPort = 1099;
 
     /*------------------------Auxiliary functions--------------------------*/
 
     private void serverSetUp() throws UnknownHostException {
         System.setProperty("java.rmi.server.hostname", InetAddress.getLocalHost().getHostAddress());
-        System.setProperty("java.security.policy", "/tmp/RMIServer.policy");
+        System.setProperty("java.security.policy", "/home/shinon/IdeaProjects/RMIForum/src/Server/RMIServer.policy");
         if (System.getSecurityManager()==null) System.setSecurityManager(new SecurityManager());
         // RMIServer obj = new RMIServer();
         String alias = "RMISharedServer";
@@ -37,7 +37,7 @@ public class RMIServer implements core.RMIServerInterface {
             ExportNBind(ServerRegistry, this, alias,serverPort);
 
             InetAddress ia = InetAddress.getLocalHost();
-            System.err.println("Server up and running on:"+ia.getHostAddress()+", type something to shutdown...");
+            System.err.println("Server up and running on:"+InetAddress.getLocalHost().getHostAddress()+", type something to shutdown...");
             Scanner sc = new Scanner(System.in);
             System.err.println("You typed: "+sc.next());
             RMIshutDown();
