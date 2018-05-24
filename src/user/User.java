@@ -30,14 +30,14 @@ public class User implements RMIClient{
     private HashMap<String, Boolean> myTopics;
     private HashMap<String,List<String>> TopicMessages;
 
-    public User(String nick, String password) throws UnknownHostException {
+    public User(String nick, String password, String Host) throws UnknownHostException {
         username = nick;
         pswd = password;
         ServerTopics = new HashMap<>();
         myTopics = new HashMap<>();
         TopicMessages = new HashMap<>();
         serverHandler = new RMIUtility(pushRegistry, myListeningPort, serverListeningPort, "RMISharedClient", "RMISharedServer");
-        serverHandler.serverSetUp(this);
+        serverHandler.serverSetUp(this, Host);
     }
 
 
@@ -242,10 +242,10 @@ public class User implements RMIClient{
         //if(System.getSecurityManager()== null) System.setSecurityManager(new SecurityManager());
         //System.setProperty("java.rmi.server.hostname", " localhost");
 
-        User myUser = new User("Mortino", "111");
+        User myUser = new User("Mortino", "111", args[0]);
         //myUser.remoteExportation(myUser);
 
-        if (myUser.ConnectionRequest(args[0], "connect") == false) {
+        if (myUser.ConnectionRequest(args[1], "connect") == false) {
             System.err.println("Something gone wrong,retry to connect");
             System.exit(-1);
         }

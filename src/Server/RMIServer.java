@@ -95,7 +95,7 @@ public class RMIServer implements core.RMIServerInterface {
         serverHandler = new RMIUtility(ServerRegistry, serverPort, clientPort, "RMISharedServer", "RMISharedClient");
         // here start the server...
         try {
-            serverHandler.serverSetUp(this);
+            serverHandler.serverSetUp(this, InetAddress.getLocalHost().getHostAddress());
         } catch (UnknownHostException e) {
             System.err.println("Couldn't setup server...");
         }
