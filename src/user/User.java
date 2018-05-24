@@ -16,9 +16,9 @@ import java.util.*;
 
 
 public class User implements RMIClient{
-    public Registry pullRegistry; /* Registry used for pulling remote method */
-    public Registry pushRegistry; /* Registry used for pushing remote method */
-    public RMIServerInterface ServerConnected; /* that is the stub */
+    private Registry pullRegistry; /* Registry used for pulling remote method */
+    private Registry pushRegistry; /* Registry used for pushing remote method */
+    private RMIServerInterface ServerConnected; /* that is the stub */
     public core.RMIClient Stub;
     private String username;
     private String pswd;
@@ -77,7 +77,7 @@ public class User implements RMIClient{
                     ServerConnected = (RMIServerInterface) pullRegistry.lookup("RMISharedServer");
                     InetAddress ia = InetAddress.getLocalHost();
                     System.out.println(java.net.InetAddress.getLocalHost());
-                    boolean result = ServerConnected.ManageConnection(username,pswd,"192.168.1.113",op);
+                    boolean result = ServerConnected.ManageConnection(username,pswd,host,op);
                     if(result) {
                         connected = true;
                         ChargeData(); /*initialize the hashmaps */
@@ -247,33 +247,62 @@ public class User implements RMIClient{
         //System.setProperty("java.security.policy", "/home/shinon/IdeaProjects/RMIForum/src/user/RMIClient.policy");
         //if(System.getSecurityManager()== null) System.setSecurityManager(new SecurityManager());
         //System.setProperty("java.rmi.server.hostname", " localhost");
+        Scanner sc = new Scanner(System.in);
+        System.out.print("Insert your name: ");
+        String username = sc.next();
+        System.out.print("Insert your password: ");
+        String pw = sc.next();
+        User myUser = new User(username, pw, args[0]);
 
-        User myUser = new User("Mortino", "111", args[0]);
-        //myUser.remoteExportation(myUser);
-
-        if (myUser.ConnectionRequest(args[1], "connect") == false) {
+        // connecting to server
+        if (!myUser.ConnectionRequest(args[1], "connect")) {
             System.err.println("Something gone wrong,retry to connect");
             System.exit(-1);
         }
 
-        try {
-            if (myUser.AddTopicRequest("Gloryhole"))
-                System.out.println("already exist");
-            else System.out.println("adding the new topic...");
-            if (!myUser.SubscribeRequest("Gloryhole", "subscribe"))
-                System.err.println("Something gone wrong,retry to subscribe on Gloryhole topic");
-            else {
-                MessageClass myMessage = new MessageClass("Mortino", "Sarebbe bello vedere i piedi di Re Julien da quel buchino!");
-                if (!myUser.MessageRequest(myMessage, "Gloryhole")) {
-                    System.err.println("Something gone wrong, message not sent to Gloryhole");
+        int operation = 0;
 
-                }
-                else System.out.println("message sent");
+        while(operation!=4) {
+            // sending requests:
+            System.out.println("1: aggiungi topic | 2: invia messaggio a topic | 3: iscrivit a topic | 4: esci");
+
+            operation = new Scanner(System.in).nextInt();
+            String topic;
+            switch(operation){
+                case 1:
+                    System.out.print("Topic name: ");
+                    topic = new Scanner(System.in).next();
+                    try {
+                        if (!myUser.AddTopicRequest(topic)) System.out.println("already exist");
+                    } catch (RemoteException e) {
+                        e.printStackTrace();
+                    }
+                    break;
+                case 2:
+                    System.out.print("Message: ");
+                    String message = new Scanner(System.in).nextLine();
+                    System.out.print("Topic to submit to: ");
+                    topic = new Scanner(System.in).next();
+                    MessageClass myMessage = new MessageClass(username, message);
+                    try {
+                        if (!myUser.MessageRequest(myMessage, topic)) System.err.println("Cannot send message...");
+                    } catch (RemoteException e) {
+                        e.printStackTrace();
+                    }
+                    break;
+                case 3:
+                    topic = new Scanner(System.in).next();
+                    try {
+                        if (!myUser.SubscribeRequest(topic, "subscribe")) System.err.println("Something gone wrong,retry to subscribe to"+topic+"topic");
+                    } catch (RemoteException e) {
+                        e.printStackTrace();
+                    }
+                    break;
+                default:
+                    System.out.println("not supported...");
+                    break;
             }
-        }catch (RemoteException e) {
-            e.printStackTrace();
         }
-        
         
         
         
