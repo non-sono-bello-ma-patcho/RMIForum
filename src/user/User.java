@@ -160,10 +160,16 @@ public class User implements RMIClient{
             return;
         }
         if(type){
-            System.out.println("Hai un nuovo messaggio da "+TriggeredBy+" su "+TopicLabel);
+            if(!username.equals(TriggeredBy))
+                System.out.println("Hai un nuovo messaggio da "+TriggeredBy+" su "+TopicLabel);
+            else
+                System.out.println("Hai inviato un nuovo messaggio su "+TopicLabel);
         }
         else{
-            System.out.println(TriggeredBy+" ha creato il topic "+TopicLabel);
+            if(!username.equals(TriggeredBy))
+                System.out.println(TriggeredBy+" ha creato il topic "+TopicLabel);
+            else
+                System.out.println("Hai creato il topic "+TopicLabel);
         }
 
         /*
@@ -238,7 +244,9 @@ public class User implements RMIClient{
     }
 
 
-
+    public void shutDown() throws RemoteException, NotBoundException {
+        serverHandler.RMIshutDown(this);
+    }
 
 
 /*that main is only a debugging, satiric version */
@@ -303,6 +311,13 @@ public class User implements RMIClient{
                 default:
                     System.out.println("not supported...");
                     break;
+            }
+            try {
+                myUser.shutDown();
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            } catch (NotBoundException e) {
+                e.printStackTrace();
             }
         }
         
