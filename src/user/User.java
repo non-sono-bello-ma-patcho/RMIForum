@@ -312,13 +312,14 @@ public class User implements RMIClient{
                     System.out.println("not supported...");
                     break;
             }
-            try {
-                myUser.shutDown();
-            } catch (RemoteException e) {
-                e.printStackTrace();
-            } catch (NotBoundException e) {
-                e.printStackTrace();
-            }
+
+        }
+        try {
+            myUser.shutDown();
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        } catch (NotBoundException e) {
+            e.printStackTrace();
         }
         
         
