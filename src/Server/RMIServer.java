@@ -87,7 +87,7 @@ public class RMIServer implements core.RMIServerInterface {
 */
     /*----------------------------------------------------------------------*/
 
-    public RMIServer(){
+    public RMIServer() throws RemoteException, NotBoundException {
         Topics = new HashMap<>();
         ClientList = new HashMap<>();
         Credential = new HashMap<>();
@@ -99,6 +99,9 @@ public class RMIServer implements core.RMIServerInterface {
         } catch (UnknownHostException e) {
             System.err.println("Couldn't setup server...");
         }
+        Scanner sc = new Scanner(System.in);
+        System.err.println("You typed: "+sc.next());
+        shutDown();
     }
 
     public void shutDown() throws RemoteException, NotBoundException {
@@ -190,7 +193,14 @@ public class RMIServer implements core.RMIServerInterface {
     }
 
     public static void main(String [] args) throws InterruptedException {
-        RMIServer rs = new RMIServer();
+        RMIServer rs = null;
+        try {
+            rs = new RMIServer();
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        } catch (NotBoundException e) {
+            e.printStackTrace();
+        }
         printInfo(rs);
     }
 }

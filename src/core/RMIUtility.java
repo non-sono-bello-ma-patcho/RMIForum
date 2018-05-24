@@ -39,9 +39,7 @@ public class RMIUtility {
 
             InetAddress ia = InetAddress.getLocalHost();
             System.err.println("Server up and running on:"+ia.getHostAddress()+", type something to shutdown...");
-            Scanner sc = new Scanner(System.in);
-            System.err.println("You typed: "+sc.next());
-            RMIshutDown(obj);
+
         } catch (RemoteException e) {
             System.err.println("Couldn't set registry, maybe you want to check stack trace?[S/n]");
             showStackTrace(e);
@@ -51,9 +49,7 @@ public class RMIUtility {
         } catch (UnknownHostException e) {
             System.err.println("Couldn't get localhost, maybe you want to check stack trace?[S/n]");
             showStackTrace(e);
-        } catch (NotBoundException e) {
-            System.err.println("Couldn't unbound, maybe you want to check stack trace?[S/n]");
-            showStackTrace(e);        }
+        }
     }
 
     static void showStackTrace(Exception e){
