@@ -313,6 +313,7 @@ public class User implements RMIClient{
             }
 
         }
+        myUser.ConnectionRequest(args[1], "disconnect");
         try {
             myUser.shutDown();
         } catch (RemoteException e) {

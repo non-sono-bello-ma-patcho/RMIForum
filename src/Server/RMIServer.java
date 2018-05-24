@@ -111,25 +111,35 @@ public class RMIServer implements core.RMIServerInterface {
 
     @Override
     public synchronized boolean ManageConnection(String username, String password, String address, String op) throws RemoteException {
-        System.err.println("Adding ["+username+"] to Users!");
-        // init conversation with client...
-        try {
-            System.err.println("Trying to retrieve methods from "+address);
-            RMIClient stub = serverHandler.getRemoteMethod(address);
-            System.err.println("DONE");
-            if(ClientList.containsKey(username)) return false;
-            ClientList.putIfAbsent(username, stub);
-        } catch (RemoteException e) {
-            System.err.println("Remote problems pal....");
-            e.printStackTrace();
-            return false;
-        } catch (NotBoundException e) {
-            System.err.println("Looks like there no shared object on that server...");
-            return false;
+        switch (op) {
+            case "connect":
+                if (ClientList.containsKey(username)) return false;
+                System.err.println("Adding [" + username + "] to Users!");
+                // init conversation with client...
+                try {
+                    System.err.println("Trying to retrieve methods from " + address);
+                    RMIClient stub = serverHandler.getRemoteMethod(address);
+                    System.err.println("DONE");
+                    ClientList.putIfAbsent(username, stub);
+                } catch (RemoteException e) {
+                    System.err.println("Remote problems pal....");
+                    e.printStackTrace();
+                    return false;
+                } catch (NotBoundException e) {
+                    System.err.println("Looks like there no shared object on that server...");
+                    return false;
+                }
+                Credential.put(username, password);
+                break;
+            case "disconnect":
+                if (!ClientList.containsKey(username)) return false;
+                System.err.print("Removing [" + username + "] from Users:");
+                ClientList.remove(username);
+                Credential.remove(username);
+                System.err.println("DONE");
+                break;
         }
-        Credential.put(username, password);
         return true;
-        // disconnection need to be added
     }
 
     @Override

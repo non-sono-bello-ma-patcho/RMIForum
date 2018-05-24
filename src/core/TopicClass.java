@@ -1,9 +1,10 @@
 package core;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TopicClass {
+public class TopicClass implements Serializable {
     private List<MessageClass> Convo;
     private List<String> Users;
     private String Name, Owner;
