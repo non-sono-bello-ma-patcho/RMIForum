@@ -5,17 +5,29 @@
  */
 package GUI;
 
+import user.User;
+
+import java.net.UnknownHostException;
+
 /**
  *
  * @author phibonachos
  */
 public class MainFrame extends javax.swing.JFrame {
-
+    private String user, pw;
+    private User myClient;
+    private DashFrame dash;
     /**
      * Creates new form MainFrame
      */
-    public MainFrame() {
+    public MainFrame(String host) {
         initComponents();
+        try {
+            myClient = new User(host);
+        } catch (UnknownHostException e) {
+            System.err.println("Couldn't setup server...");
+        }
+        // dash = new DashFrame(myClient);
     }
 
     /**
@@ -36,7 +48,10 @@ public class MainFrame extends javax.swing.JFrame {
         jLabel2 = new javax.swing.JLabel();
         jSeparator3 = new javax.swing.JSeparator();
         passwordField = new javax.swing.JPasswordField();
-        ConnectButton = new javax.swing.JButton();
+        jButton1 = new javax.swing.JButton();
+        HostField = new javax.swing.JTextField();
+        jLabel5 = new javax.swing.JLabel();
+        jSeparator4 = new javax.swing.JSeparator();
         jPanel2 = new javax.swing.JPanel();
         jLabel4 = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
@@ -63,7 +78,7 @@ public class MainFrame extends javax.swing.JFrame {
 
         usernameField.setBackground(new java.awt.Color(70, 73, 76));
         usernameField.setForeground(new java.awt.Color(197, 195, 198));
-        usernameField.setText("");
+        usernameField.setText("rollingflamingo");
         usernameField.setBorder(null);
         usernameField.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -81,23 +96,39 @@ public class MainFrame extends javax.swing.JFrame {
 
         passwordField.setBackground(new java.awt.Color(70, 73, 76));
         passwordField.setForeground(new java.awt.Color(197, 195, 198));
-        passwordField.setText("");
+        passwordField.setText("passwordField");
         passwordField.setBorder(null);
 
-        ConnectButton.setBackground(new java.awt.Color(76, 92, 104));
-        ConnectButton.setForeground(new java.awt.Color(133, 189, 191));
-        ConnectButton.setText("Login");
-        ConnectButton.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(76, 92, 104)));
-        ConnectButton.setBorderPainted(false);
-        ConnectButton.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
-        ConnectButton.setFocusPainted(false);
-        ConnectButton.setName(""); // NOI18N
-        ConnectButton.setRequestFocusEnabled(false);
-        ConnectButton.addActionListener(new java.awt.event.ActionListener() {
+        jButton1.setBackground(new java.awt.Color(76, 92, 104));
+        jButton1.setForeground(new java.awt.Color(133, 189, 191));
+        jButton1.setText("Login");
+        jButton1.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(76, 92, 104)));
+        jButton1.setBorderPainted(false);
+        jButton1.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
+        jButton1.setFocusPainted(false);
+        jButton1.setName(""); // NOI18N
+        jButton1.setRequestFocusEnabled(false);
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 ConnectButtonActionPerformed(evt);
             }
         });
+
+        HostField.setBackground(new java.awt.Color(70, 73, 76));
+        HostField.setForeground(new java.awt.Color(197, 195, 198));
+        HostField.setText("127.0.0.1");
+        HostField.setBorder(null);
+        HostField.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                HostFieldActionPerformed(evt);
+            }
+        });
+
+        jLabel5.setFont(new java.awt.Font("Dialog", 0, 12)); // NOI18N
+        jLabel5.setForeground(new java.awt.Color(133, 189, 191));
+        jLabel5.setText("Host");
+
+        jSeparator4.setForeground(new java.awt.Color(220, 220, 221));
 
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
@@ -106,13 +137,16 @@ public class MainFrame extends javax.swing.JFrame {
                         .addGroup(jPanel3Layout.createSequentialGroup()
                                 .addGap(108, 108, 108)
                                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                        .addComponent(jLabel5)
                                         .addComponent(jLabel1)
                                         .addComponent(jLabel2)
                                         .addComponent(usernameField)
                                         .addComponent(jSeparator1)
                                         .addComponent(passwordField, javax.swing.GroupLayout.DEFAULT_SIZE, 242, Short.MAX_VALUE)
                                         .addComponent(jSeparator3)
-                                        .addComponent(ConnectButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                        .addComponent(jButton1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addComponent(HostField)
+                                        .addComponent(jSeparator4))
                                 .addContainerGap(110, Short.MAX_VALUE))
         );
         jPanel3Layout.setVerticalGroup(
@@ -131,8 +165,14 @@ public class MainFrame extends javax.swing.JFrame {
                                 .addGap(9, 9, 9)
                                 .addComponent(jSeparator3, javax.swing.GroupLayout.PREFERRED_SIZE, 12, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addGap(18, 18, 18)
-                                .addComponent(ConnectButton, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                .addComponent(jLabel5)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(HostField, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jSeparator4, javax.swing.GroupLayout.PREFERRED_SIZE, 12, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(44, 44, 44))
         );
 
         jPanel2.setBackground(new java.awt.Color(47, 50, 58));
@@ -183,14 +223,23 @@ public class MainFrame extends javax.swing.JFrame {
         );
 
         pack();
-    }// </editor-fold>
+    }//
 
     private void jTextField1ActionPerformed(java.awt.event.ActionEvent evt) {
         // TODO add your handling code here:
     }
 
     private void ConnectButtonActionPerformed(java.awt.event.ActionEvent evt) {
+        user = usernameField.getText();
+        pw = passwordField.getSelectedText();
+        myClient.ConnectionRequest(user, pw, "192.168.1.113", "connect");
+        this.setVisible(false);
+        DashFrame df = new DashFrame(myClient, HostField.getText(), this);
+        df.setVisible(true);
+    }
 
+    private void HostFieldActionPerformed(java.awt.event.ActionEvent evt) {
+        // TODO add your handling code here:
     }
 
     /**
@@ -206,17 +255,19 @@ public class MainFrame extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new MainFrame().setVisible(true);
+                new MainFrame(args[0]).setVisible(true);
             }
         });
     }
 
     // Variables declaration - do not modify
-    private javax.swing.JButton ConnectButton;
+    private javax.swing.JTextField HostField;
+    private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
@@ -224,6 +275,7 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JSeparator jSeparator2;
     private javax.swing.JSeparator jSeparator3;
+    private javax.swing.JSeparator jSeparator4;
     private javax.swing.JTextField usernameField;
     // End of variables declaration
 }

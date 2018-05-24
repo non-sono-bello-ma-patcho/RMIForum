@@ -1,4 +1,5 @@
 package user;
+import GUI.MainFrame;
 import core.*;
 
 
@@ -22,7 +23,7 @@ public class User implements RMIClient{
     public core.RMIClient Stub;
     private String username;
     private String pswd;
-    private String myHost;
+    private String myHost, ServerHost;
     private boolean connected = false;
     private final int myListeningPort = 1099;
     private final int serverListeningPort = 1969;
@@ -30,18 +31,17 @@ public class User implements RMIClient{
     private HashMap<String, TopicClass> ServerTopics;
     private HashMap<String, Boolean> myTopics;
     private HashMap<String,List<String>> TopicMessages;
+    private Set<String> notifier;
 
-    public User(String nick, String password, String Host) throws UnknownHostException {
-        username = nick;
-        pswd = password;
+    public User(String Host) throws UnknownHostException {
         ServerTopics = new HashMap<>();
         myTopics = new HashMap<>();
         TopicMessages = new HashMap<>();
+        notifier = new HashSet<>();
         serverHandler = new RMIUtility(pushRegistry, myListeningPort, serverListeningPort, "RMISharedClient", "RMISharedServer");
         serverHandler.serverSetUp(this, Host);
         myHost = Host;
     }
-
 
     /*optimization function */
     /*that method charge the data from the connected server*/
@@ -73,7 +73,10 @@ public class User implements RMIClient{
     }
 
     /*method that try to connect/disconnect to the rmi server */
-    private  boolean ConnectionRequest(String host, String op){
+    public boolean ConnectionRequest(String user, String pw, String host, String op){
+        username = user;
+        pswd = pw;
+        ServerHost = host;
         switch(op){
             case "connect":
                 if ( connected){
@@ -123,7 +126,7 @@ public class User implements RMIClient{
     }
 
 /* that method is for the topic registration..*/
-    private boolean SubscribeRequest(String TopicName, String op) throws RemoteException {
+    public boolean SubscribeRequest(String TopicName, String op) throws RemoteException {
         if(!connected){
             System.err.println("Permission denied! you are not connected!");
             return false;
@@ -142,7 +145,7 @@ public class User implements RMIClient{
         /*if the topic doesn't exist, maybe the server could create it and subscribe that user and than return (?)*/
     }
 
-    private boolean AddTopicRequest(String TopicName) throws RemoteException {
+    public boolean AddTopicRequest(String TopicName) throws RemoteException {
         if(!connected){
             System.err.println("Permission denied! you are not connected!");
             return false;
@@ -150,7 +153,7 @@ public class User implements RMIClient{
         return ServerConnected.addTopic(TopicName, username);
     }
 
-    private boolean MessageRequest(MessageClass msg,String topicName) throws RemoteException {
+    public boolean MessageRequest(MessageClass msg,String topicName) throws RemoteException {
         if(!connected){
             System.err.println("Permission denied! you are not connected!");
             return false;
@@ -164,6 +167,7 @@ public class User implements RMIClient{
             System.err.println("Permission denied! The client isn't connected");
             return;
         }
+        notifier.add(TopicLabel); // I need this for the gui...
         if(type){
             if(!username.equals(TriggeredBy))
                 System.out.println("Hai un nuovo messaggio da "+TriggeredBy+" su "+TopicLabel);
@@ -176,7 +180,7 @@ public class User implements RMIClient{
             else
                 System.out.println("Hai creato il topic "+TopicLabel);
         }
-
+        ChargeData();
         /*
         ServerTopics = ServerConnected.getTopics();
 
@@ -248,6 +252,35 @@ public class User implements RMIClient{
         return;
     }
 
+    public List<String> getConvo(String TopicName){
+        return ServerTopics.get(TopicName).ListMessages();
+    }
+
+    public List<String> getTopics(){
+        List<String> res = new ArrayList<>();
+        res.addAll(ServerTopics.keySet());
+        return res;
+    }
+
+    public HashMap<String, Boolean> getMyTopics() {
+        return myTopics;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public String getServerHost(){
+        return ServerHost;
+    }
+
+    public Set<String> getNotifier(){
+        return notifier;
+    }
+
+    public void removeNotif(String not){
+        notifier.remove(not);
+    }
 
     public void shutDown() throws RemoteException, NotBoundException {
         serverHandler.RMIshutDown(this);
@@ -262,15 +295,18 @@ public class User implements RMIClient{
         //System.setProperty("java.security.policy", "/home/shinon/IdeaProjects/RMIForum/src/user/RMIClient.policy");
         //if(System.getSecurityManager()== null) System.setSecurityManager(new SecurityManager());
         //System.setProperty("java.rmi.server.hostname", " localhost");
+        /*
         Scanner sc = new Scanner(System.in);
         System.out.print("Insert your name: ");
         String username = sc.next();
         System.out.print("Insert your password: ");
         String pw = sc.next();
-        User myUser = new User(username, pw, args[0]);
+        */
+        String username = new Scanner(System.in).next() , pw = new Scanner(System.in).next();
+        User myUser = new User(args[0]);
 
         // connecting to server
-        if (!myUser.ConnectionRequest(args[1], "connect")) {
+        if (!myUser.ConnectionRequest(username, pw, args[1], "connect")) {
             System.err.println("Something gone wrong,retry to connect");
             System.exit(-1);
         }
@@ -319,7 +355,7 @@ public class User implements RMIClient{
             }
 
         }
-        myUser.ConnectionRequest(args[1], "disconnect");
+        myUser.ConnectionRequest(username, pw, args[1], "disconnect");
         try {
             myUser.shutDown();
         } catch (RemoteException e) {

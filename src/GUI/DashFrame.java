@@ -5,8 +5,17 @@ package GUI;
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
+import core.MessageClass;
+import core.RMIClient;
+import user.User;
+
 import javax.swing.*;
 import java.awt.*;
+import java.net.UnknownHostException;
+import java.rmi.RemoteException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  *
@@ -14,6 +23,34 @@ import java.awt.*;
  */
 public class DashFrame extends javax.swing.JFrame {
     private boolean Triggered;
+    private User myClient;
+    String ServerHost;
+    JFrame Caller;
+
+    /**************************************************************************/
+    private void updateConvo(String TopicName){
+        ConvoBox.removeAll();
+        // add as many msgBox as the message in topic...
+        for(String msg : myClient.getConvo(TopicName)){
+            ConvoBox.add(new MsgBox(msg));
+        }
+        ConvoBox.revalidate();
+        ConvoBox.repaint();
+        pack();
+    }
+
+    private void updateTopic(){
+        SubBox.removeAll();
+        for(String top : myClient.getTopics()){
+            SubBox.add(new SubForm(top, myClient.getMyTopics().get(top)));
+        }
+        ConvoBox.revalidate();
+        ConvoBox.repaint();
+        pack();
+    }
+    /**************************************************************************/
+
+
     /*-----------------------------------------------------------------------*/
     private int getContentHeight(String content) {
         JEditorPane dummyEditorPane=new JEditorPane();
@@ -40,18 +77,23 @@ public class DashFrame extends javax.swing.JFrame {
         }
     }
 
-    private class SubForm extends javax.swing.JPanel{
+    private class SubForm extends javax.swing.JPanel {
         private String TopicName;
         private boolean Triggered;
         private JToggleButton SubButton;
-        public SubForm(String tn){
+        private JButton CheckoutButton;
+
+        public SubForm(String tn, boolean pushed) {
             TopicName = tn;
-            setBackground(new java.awt.Color(139, 137, 130));
-            setPreferredSize(new Dimension(160, 74));
+            if(myClient.getNotifier().contains(tn) && !TopicConvoName.equals(TopicName))setBackground(new java.awt.Color(206,109,139));
+            else setBackground(new java.awt.Color(139, 137, 130));
+            setPreferredSize(new Dimension(163, 120));
             setMaximumSize(new java.awt.Dimension(getPreferredSize()));
             setMinimumSize(new java.awt.Dimension(getPreferredSize()));
             setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(35, 37, 43), 2));
             SubButton = new JToggleButton();
+            CheckoutButton = new JButton();
+
             JLabel TopicName = new JLabel();
 
             SubButton.setBackground(new java.awt.Color(76, 92, 104));
@@ -59,9 +101,23 @@ public class DashFrame extends javax.swing.JFrame {
             SubButton.setForeground(new java.awt.Color(133, 189, 191));
             SubButton.setText("Subscribe");
             SubButton.setBorder(null);
+            SubButton.setPreferredSize(new Dimension(93, 25));
+            SubButton.setSelected(pushed);
             SubButton.addActionListener(new java.awt.event.ActionListener() {
                 public void actionPerformed(java.awt.event.ActionEvent evt) {
                     SubButtonActionPerformed(evt);
+                }
+            });
+
+            CheckoutButton.setBackground(new java.awt.Color(76, 92, 104));
+            CheckoutButton.setFont(new java.awt.Font("Dialog", 1, 10)); // NOI18N
+            CheckoutButton.setForeground(new java.awt.Color(133, 189, 191));
+            CheckoutButton.setText("Checkout");
+            CheckoutButton.setBorder(null);
+            CheckoutButton.setPreferredSize(new Dimension(93, 25));
+            CheckoutButton.addActionListener(new java.awt.event.ActionListener() {
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    CheckoutButtonActionPerformed(evt);
                 }
             });
 
@@ -75,7 +131,8 @@ public class DashFrame extends javax.swing.JFrame {
                                     .addContainerGap()
                                     .addGroup(TopicSubFormLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                             .addComponent(TopicName, javax.swing.GroupLayout.DEFAULT_SIZE, 84, Short.MAX_VALUE)
-                                            .addComponent(SubButton, javax.swing.GroupLayout.DEFAULT_SIZE, 84, Short.MAX_VALUE))
+                                            .addComponent(SubButton, javax.swing.GroupLayout.DEFAULT_SIZE, 84, Short.MAX_VALUE)
+                                            .addComponent(CheckoutButton, javax.swing.GroupLayout.DEFAULT_SIZE, 84, Short.MAX_VALUE))
                                     .addContainerGap())
             );
             TopicSubFormLayout.setVerticalGroup(
@@ -83,8 +140,10 @@ public class DashFrame extends javax.swing.JFrame {
                             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, TopicSubFormLayout.createSequentialGroup()
                                     .addGap(6, 6, 6)
                                     .addComponent(TopicName)
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                    .addComponent(CheckoutButton)
                                     .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                    .addComponent(SubButton, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(SubButton)
                                     .addContainerGap())
             );
 
@@ -92,22 +151,45 @@ public class DashFrame extends javax.swing.JFrame {
 
         private void SubButtonActionPerformed(java.awt.event.ActionEvent evt) {
             // TODO add your handling code here:
-            if(!Triggered){
+            if (!Triggered) {
                 // call from server class
+                try {
+                    myClient.SubscribeRequest(TopicName, "subscribe");
+                } catch (RemoteException e) {
+                    System.err.println("Cannot subscribe honey...");
+                }
                 SubButton.setText("Unsubscribe");
-            }
-            else{
+            } else {
+                try {
+                    myClient.SubscribeRequest(TopicName, "unsubscribe");
+                } catch (RemoteException e) {
+                    System.err.println("Cannot unsubscribe honey...");
+                }
                 SubButton.setText("Subscribe");
             }
             Triggered = !Triggered;
+        }
+
+        private void CheckoutButtonActionPerformed(java.awt.event.ActionEvent evt) {
+            // TODO add your handling code here:
+            // flush convoBox
+            TopicConvoName.setText(TopicName);
+            setBackground(new java.awt.Color(139, 137, 130));
+            updateConvo(TopicName);
+            myClient.removeNotif(TopicName);
         }
     }
     /*-----------------------------------------------------------------------*/
     /**
      * Creates new form DashFrame
      */
-    public DashFrame() {
+    public DashFrame(User user, String sh, JFrame c) {
         initComponents();
+        ServerHost = sh;
+        myClient = user;
+        Caller = c;
+        updateTopic();
+        // populate convoBox
     }
 
     /**
@@ -122,7 +204,7 @@ public class DashFrame extends javax.swing.JFrame {
         MainPane = new javax.swing.JPanel();
         UtilityPane = new javax.swing.JPanel();
         jSeparator1 = new javax.swing.JSeparator();
-        jButton1 = new javax.swing.JButton();
+        DisconnectButton = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
         SubBox = new javax.swing.JPanel();
         AddTopic = new javax.swing.JButton();
@@ -134,7 +216,7 @@ public class DashFrame extends javax.swing.JFrame {
         SendButton = new javax.swing.JButton();
         ConvoScroll = new javax.swing.JScrollPane();
         ConvoBox = new javax.swing.JPanel();
-        jLabel1 = new javax.swing.JLabel();
+        TopicConvoName = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setResizable(false);
@@ -148,12 +230,12 @@ public class DashFrame extends javax.swing.JFrame {
         jSeparator1.setBackground(new java.awt.Color(70, 73, 76));
         jSeparator1.setForeground(new java.awt.Color(70, 73, 76));
 
-        jButton1.setBackground(new java.awt.Color(76, 92, 104));
-        jButton1.setForeground(new java.awt.Color(133, 189, 191));
-        jButton1.setText("Disconnect");
-        jButton1.setBorder(null);
-        jButton1.setName(""); // NOI18N
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
+        DisconnectButton.setBackground(new java.awt.Color(76, 92, 104));
+        DisconnectButton.setForeground(new java.awt.Color(133, 189, 191));
+        DisconnectButton.setText("Disconnect");
+        DisconnectButton.setBorder(null);
+        DisconnectButton.setName(""); // NOI18N
+        DisconnectButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton1ActionPerformed(evt);
             }
@@ -204,7 +286,7 @@ public class DashFrame extends javax.swing.JFrame {
                                 .addContainerGap()
                                 .addGroup(UtilityPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                         .addComponent(jSeparator1)
-                                        .addComponent(jButton1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addComponent(DisconnectButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                         .addComponent(AddTopic, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                         .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 168, Short.MAX_VALUE)
                                         .addComponent(TopicNameField, javax.swing.GroupLayout.Alignment.TRAILING)
@@ -225,7 +307,7 @@ public class DashFrame extends javax.swing.JFrame {
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(AddTopic, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(DisconnectButton, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addContainerGap())
         );
 
@@ -270,8 +352,8 @@ public class DashFrame extends javax.swing.JFrame {
         ConvoScroll.setViewportView(ConvoBox);
         ConvoBox.getAccessibleContext().setAccessibleParent(jScrollPane1);
 
-        jLabel1.setForeground(new java.awt.Color(139, 137, 130));
-        jLabel1.setText("Topic Name");
+        TopicConvoName.setForeground(new java.awt.Color(139, 137, 130));
+        TopicConvoName.setText("No Topic Selected...");
 
         javax.swing.GroupLayout ConvoPaneLayout = new javax.swing.GroupLayout(ConvoPane);
         ConvoPane.setLayout(ConvoPaneLayout);
@@ -280,7 +362,7 @@ public class DashFrame extends javax.swing.JFrame {
                         .addGroup(ConvoPaneLayout.createSequentialGroup()
                                 .addGroup(ConvoPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                         .addGroup(ConvoPaneLayout.createSequentialGroup()
-                                                .addComponent(jLabel1)
+                                                .addComponent(TopicConvoName)
                                                 .addGap(0, 0, Short.MAX_VALUE))
                                         .addGroup(ConvoPaneLayout.createSequentialGroup()
                                                 .addContainerGap()
@@ -298,7 +380,7 @@ public class DashFrame extends javax.swing.JFrame {
                 ConvoPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                         .addGroup(ConvoPaneLayout.createSequentialGroup()
                                 .addContainerGap()
-                                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 21, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(TopicConvoName, javax.swing.GroupLayout.PREFERRED_SIZE, 21, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addGap(18, 18, 18)
                                 .addComponent(ConvoScroll, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -334,14 +416,20 @@ public class DashFrame extends javax.swing.JFrame {
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {
         // TODO add your handling code here:
+        myClient.ConnectionRequest(myClient.getUsername(), null, myClient.getServerHost(), "disconnect");
+        this.dispose();
+        Caller.setVisible(true);
     }
 
     private void AddTopicActionPerformed(java.awt.event.ActionEvent evt) {
         // TODO add your handling code here:
         String TopicName = TopicNameField.getText();
-        System.err.println("Showing dialog.....");
-        SubBox.add(new SubForm(TopicName));
-        TopicNameField.setText("");
+        try {
+            myClient.AddTopicRequest(TopicName);
+        } catch (RemoteException e) {
+            System.err.println("Couldn't add topic...");
+        }
+        updateTopic();
         pack();
     }
 
@@ -349,10 +437,13 @@ public class DashFrame extends javax.swing.JFrame {
         // Add a textpane to combooBox
         String message = MessageField.getText();
         if(message.isEmpty()) return;
-        MsgBox msg = new MsgBox(message);
-        ConvoBox.add(msg);
-        pack();
-        MessageField.setText("");
+        try {
+            myClient.MessageRequest(new MessageClass(myClient.getUsername(), message), TopicConvoName.getText());
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+        updateConvo(TopicConvoName.getText());
+        updateTopic();
     }
 
     private void sendHover(java.awt.event.MouseEvent evt) {
@@ -378,36 +469,14 @@ public class DashFrame extends javax.swing.JFrame {
     /**
      * @param args the command line arguments
      */
-    public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html
-         *//*
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(DashFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(DashFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(DashFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(DashFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        //</editor-fold>
-
-        /* Create and display the form */
+    public static void main(String args[]) throws UnknownHostException {
+        /*User u = new User("127.0.0.1");
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new DashFrame().setVisible(true);
+                new DashFrame(u, "").setVisible(true);
             }
         });
+*/
     }
 
     // Variables declaration - do not modify
@@ -422,8 +491,8 @@ public class DashFrame extends javax.swing.JFrame {
     private javax.swing.JPanel SubBox;
     private javax.swing.JTextField TopicNameField;
     private javax.swing.JPanel UtilityPane;
-    private javax.swing.JButton jButton1;
-    private javax.swing.JLabel jLabel1;
+    private javax.swing.JButton DisconnectButton;
+    private javax.swing.JLabel TopicConvoName;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JSeparator jSeparator2;
