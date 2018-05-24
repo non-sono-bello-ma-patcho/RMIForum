@@ -32,6 +32,13 @@ public class TopicClass {
         return Users;
     }
 
+    public boolean hasUser(String user){
+        for(String s : ListUsers()){
+            if(s.equals(user)) return true;
+        }
+        return false;
+    }
+
     public List<String> ListMessages(){
         List<String> tmp = new ArrayList<>();
         for(MessageClass m : Convo){

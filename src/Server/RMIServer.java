@@ -150,9 +150,11 @@ public class RMIServer implements core.RMIServerInterface {
         // submit callable for each client....
         System.err.println("Send notify to all clients:");
         for(String s : ClientList.keySet()){
-            System.err.print("Notifying ["+s+"]:");
-            ClientList.get(s).CLiNotify(TopicLabel, TriggeredBy, type);
-            System.err.println("DONE");
+            if(Topics.get(TopicLabel).hasUser(s) || !type) { // notify only if a topic has been added or the user is subscribed...
+                System.err.print("Notifying [" + s + "]:");
+                ClientList.get(s).CLiNotify(TopicLabel, TriggeredBy, type);
+                System.err.println("DONE");
+            }
         }
     }
 
