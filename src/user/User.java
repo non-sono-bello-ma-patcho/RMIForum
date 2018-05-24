@@ -149,8 +149,7 @@ public class User implements RMIClient{
             System.err.println("Permission denied! you are not connected!");
             return false;
         }
-        ServerConnected.ManagePublish(msg,topicName);
-        return true;
+         return ServerConnected.ManagePublish(msg,topicName);
     }
 
     @Override

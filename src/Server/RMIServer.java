@@ -159,10 +159,12 @@ public class RMIServer implements core.RMIServerInterface {
     }
 
     @Override
-    public void ManagePublish(MessageClass msg, String TopicName) throws RemoteException {
+    public boolean ManagePublish(MessageClass msg, String TopicName) throws RemoteException {
         System.err.println("Publishing |"+msg.getFormatMsg()+"| to ["+TopicName+"]!");
+        if(!Topics.get(TopicName).hasUser(msg.getUser())) return false;
         (Topics.get(TopicName)).addMessage(msg);
         Notify(TopicName, msg.getUser(), true); // update local users convos...
+        return true;
     }
 
     @Override
