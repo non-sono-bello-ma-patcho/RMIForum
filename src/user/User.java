@@ -22,6 +22,7 @@ public class User implements RMIClient{
     public core.RMIClient Stub;
     private String username;
     private String pswd;
+    private String myHost;
     private boolean connected = false;
     private final int myListeningPort = 1099;
     private final int serverListeningPort = 1969;
@@ -38,6 +39,7 @@ public class User implements RMIClient{
         TopicMessages = new HashMap<>();
         serverHandler = new RMIUtility(pushRegistry, myListeningPort, serverListeningPort, "RMISharedClient", "RMISharedServer");
         serverHandler.serverSetUp(this, Host);
+        myHost = Host;
     }
 
 
@@ -77,7 +79,7 @@ public class User implements RMIClient{
                     ServerConnected = (RMIServerInterface) pullRegistry.lookup("RMISharedServer");
                     InetAddress ia = InetAddress.getLocalHost();
                     System.out.println(java.net.InetAddress.getLocalHost());
-                    boolean result = ServerConnected.ManageConnection(username,pswd,host,op);
+                    boolean result = ServerConnected.ManageConnection(username,pswd,myHost,op);
                     if(result) {
                         connected = true;
                         ChargeData(); /*initialize the hashmaps */
