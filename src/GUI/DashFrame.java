@@ -1,0 +1,431 @@
+package GUI;
+
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+import javax.swing.*;
+import java.awt.*;
+
+/**
+ *
+ * @author phibonachos
+ */
+public class DashFrame extends javax.swing.JFrame {
+    private boolean Triggered;
+    /*-----------------------------------------------------------------------*/
+    private int getContentHeight(String content) {
+        JEditorPane dummyEditorPane=new JEditorPane();
+        dummyEditorPane.setSize(290,Short.MAX_VALUE);
+        dummyEditorPane.setText(content);
+
+        return dummyEditorPane.getPreferredSize().height;
+    }
+
+    private class MsgBox extends javax.swing.JTextArea{
+        public MsgBox(String Message){
+            setColumns(20);
+            setRows(5);
+            setLineWrap(true);
+            setWrapStyleWord(true);
+            setMinimumSize(new java.awt.Dimension(290, 38));
+            setEditable(false);
+            setBackground(new java.awt.Color(103, 106, 108));
+            setForeground(new java.awt.Color(255, 255, 255));
+            setFont(new java.awt.Font("Dialog", 0, 10));
+            setBorder(javax.swing.BorderFactory.createCompoundBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(70,73,76), 2), javax.swing.BorderFactory.createLineBorder(new java.awt.Color(103, 106, 108), 5)));
+            setText(Message);
+            setMaximumSize(new Dimension(getPreferredSize()));
+        }
+    }
+
+    private class SubForm extends javax.swing.JPanel{
+        private String TopicName;
+        private boolean Triggered;
+        private JToggleButton SubButton;
+        public SubForm(String tn){
+            TopicName = tn;
+            setBackground(new java.awt.Color(139, 137, 130));
+            setPreferredSize(new Dimension(160, 74));
+            setMaximumSize(new java.awt.Dimension(getPreferredSize()));
+            setMinimumSize(new java.awt.Dimension(getPreferredSize()));
+            setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(35, 37, 43), 2));
+            SubButton = new JToggleButton();
+            JLabel TopicName = new JLabel();
+
+            SubButton.setBackground(new java.awt.Color(76, 92, 104));
+            SubButton.setFont(new java.awt.Font("Dialog", 1, 10)); // NOI18N
+            SubButton.setForeground(new java.awt.Color(133, 189, 191));
+            SubButton.setText("Subscribe");
+            SubButton.setBorder(null);
+            SubButton.addActionListener(new java.awt.event.ActionListener() {
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    SubButtonActionPerformed(evt);
+                }
+            });
+
+            TopicName.setText(this.TopicName);
+
+            javax.swing.GroupLayout TopicSubFormLayout = new javax.swing.GroupLayout(this);
+            setLayout(TopicSubFormLayout);
+            TopicSubFormLayout.setHorizontalGroup(
+                    TopicSubFormLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(TopicSubFormLayout.createSequentialGroup()
+                                    .addContainerGap()
+                                    .addGroup(TopicSubFormLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                            .addComponent(TopicName, javax.swing.GroupLayout.DEFAULT_SIZE, 84, Short.MAX_VALUE)
+                                            .addComponent(SubButton, javax.swing.GroupLayout.DEFAULT_SIZE, 84, Short.MAX_VALUE))
+                                    .addContainerGap())
+            );
+            TopicSubFormLayout.setVerticalGroup(
+                    TopicSubFormLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, TopicSubFormLayout.createSequentialGroup()
+                                    .addGap(6, 6, 6)
+                                    .addComponent(TopicName)
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(SubButton, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addContainerGap())
+            );
+
+        }
+
+        private void SubButtonActionPerformed(java.awt.event.ActionEvent evt) {
+            // TODO add your handling code here:
+            if(!Triggered){
+                // call from server class
+                SubButton.setText("Unsubscribe");
+            }
+            else{
+                SubButton.setText("Subscribe");
+            }
+            Triggered = !Triggered;
+        }
+    }
+    /*-----------------------------------------------------------------------*/
+    /**
+     * Creates new form DashFrame
+     */
+    public DashFrame() {
+        initComponents();
+    }
+
+    /**
+     * This method is called from within the constructor to initialize the form.
+     * WARNING: Do NOT modify this code. The content of this method is always
+     * regenerated by the Form Editor.
+     */
+    @SuppressWarnings("unchecked")
+    // <editor-fold defaultstate="collapsed" desc="Generated Code">
+    private void initComponents() {
+
+        MainPane = new javax.swing.JPanel();
+        UtilityPane = new javax.swing.JPanel();
+        jSeparator1 = new javax.swing.JSeparator();
+        jButton1 = new javax.swing.JButton();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        SubBox = new javax.swing.JPanel();
+        AddTopic = new javax.swing.JButton();
+        TopicNameField = new javax.swing.JTextField();
+        jSeparator2 = new javax.swing.JSeparator();
+        ConvoPane = new javax.swing.JPanel();
+        MessageField = new javax.swing.JTextField();
+        MessageSep = new javax.swing.JSeparator();
+        SendButton = new javax.swing.JButton();
+        ConvoScroll = new javax.swing.JScrollPane();
+        ConvoBox = new javax.swing.JPanel();
+        jLabel1 = new javax.swing.JLabel();
+
+        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setResizable(false);
+
+        MainPane.setBackground(new java.awt.Color(70, 73, 76));
+        MainPane.setToolTipText("");
+        MainPane.setMaximumSize(new java.awt.Dimension(664, 501));
+
+        UtilityPane.setBackground(new java.awt.Color(47, 50, 58));
+
+        jSeparator1.setBackground(new java.awt.Color(70, 73, 76));
+        jSeparator1.setForeground(new java.awt.Color(70, 73, 76));
+
+        jButton1.setBackground(new java.awt.Color(76, 92, 104));
+        jButton1.setForeground(new java.awt.Color(133, 189, 191));
+        jButton1.setText("Disconnect");
+        jButton1.setBorder(null);
+        jButton1.setName(""); // NOI18N
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
+
+        jScrollPane1.setBorder(null);
+        jScrollPane1.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        jScrollPane1.setPreferredSize(new java.awt.Dimension(139, 200));
+
+        SubBox.setBackground(new java.awt.Color(35, 37, 43));
+        SubBox.setLayout(new javax.swing.BoxLayout(SubBox, javax.swing.BoxLayout.PAGE_AXIS));
+        jScrollPane1.setViewportView(SubBox);
+
+        AddTopic.setBackground(new java.awt.Color(76, 92, 104));
+        AddTopic.setForeground(new java.awt.Color(133, 189, 191));
+        AddTopic.setText("Add Topic");
+        AddTopic.setBorder(null);
+        AddTopic.setName(""); // NOI18N
+        AddTopic.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                AddTopicActionPerformed(evt);
+            }
+        });
+
+        TopicNameField.setBackground(new java.awt.Color(47, 50, 58));
+        TopicNameField.setForeground(new java.awt.Color(139, 137, 130));
+        TopicNameField.setText("...");
+        TopicNameField.setBorder(null);
+        TopicNameField.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                TopicNameFieldActionPerformed(evt);
+            }
+        });
+        TopicNameField.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                TopicNameFieldKeyPressed(evt);
+            }
+        });
+
+        jSeparator2.setBackground(new java.awt.Color(70, 73, 76));
+        jSeparator2.setForeground(new java.awt.Color(70, 73, 76));
+
+        javax.swing.GroupLayout UtilityPaneLayout = new javax.swing.GroupLayout(UtilityPane);
+        UtilityPane.setLayout(UtilityPaneLayout);
+        UtilityPaneLayout.setHorizontalGroup(
+                UtilityPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(UtilityPaneLayout.createSequentialGroup()
+                                .addContainerGap()
+                                .addGroup(UtilityPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                        .addComponent(jSeparator1)
+                                        .addComponent(jButton1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addComponent(AddTopic, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 168, Short.MAX_VALUE)
+                                        .addComponent(TopicNameField, javax.swing.GroupLayout.Alignment.TRAILING)
+                                        .addComponent(jSeparator2))
+                                .addContainerGap())
+        );
+        UtilityPaneLayout.setVerticalGroup(
+                UtilityPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, UtilityPaneLayout.createSequentialGroup()
+                                .addContainerGap()
+                                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 335, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(TopicNameField, javax.swing.GroupLayout.PREFERRED_SIZE, 27, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jSeparator2, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(AddTopic, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addContainerGap())
+        );
+
+        ConvoPane.setBackground(new java.awt.Color(70, 73, 76));
+
+        MessageField.setBackground(new java.awt.Color(70, 73, 76));
+        MessageField.setFont(new java.awt.Font("URW Gothic", 0, 10)); // NOI18N
+        MessageField.setForeground(new java.awt.Color(197, 195, 198));
+        MessageField.setToolTipText("");
+        MessageField.setBorder(null);
+        MessageField.setMaximumSize(new java.awt.Dimension(377, 13));
+        MessageField.setMinimumSize(new java.awt.Dimension(377, 13));
+
+        MessageSep.setBackground(new java.awt.Color(47, 50, 58));
+        MessageSep.setForeground(new java.awt.Color(47, 50, 58));
+
+        SendButton.setBackground(new java.awt.Color(70, 73, 76));
+        SendButton.setForeground(new java.awt.Color(133, 189, 191));
+        SendButton.setText("Send");
+        SendButton.setBorder(null);
+        SendButton.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                sendUnhover(evt);
+            }
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                sendHover(evt);
+            }
+        });
+        SendButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                SendButtonActionPerformed(evt);
+            }
+        });
+
+        ConvoScroll.setBackground(new java.awt.Color(204, 255, 204));
+        ConvoScroll.setBorder(null);
+        ConvoScroll.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        ConvoScroll.setPreferredSize(new java.awt.Dimension(302, 223));
+
+        ConvoBox.setBackground(new java.awt.Color(70, 73, 76));
+        ConvoBox.setLayout(new javax.swing.BoxLayout(ConvoBox, javax.swing.BoxLayout.PAGE_AXIS));
+        ConvoScroll.setViewportView(ConvoBox);
+        ConvoBox.getAccessibleContext().setAccessibleParent(jScrollPane1);
+
+        jLabel1.setForeground(new java.awt.Color(139, 137, 130));
+        jLabel1.setText("Topic Name");
+
+        javax.swing.GroupLayout ConvoPaneLayout = new javax.swing.GroupLayout(ConvoPane);
+        ConvoPane.setLayout(ConvoPaneLayout);
+        ConvoPaneLayout.setHorizontalGroup(
+                ConvoPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(ConvoPaneLayout.createSequentialGroup()
+                                .addGroup(ConvoPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                        .addGroup(ConvoPaneLayout.createSequentialGroup()
+                                                .addComponent(jLabel1)
+                                                .addGap(0, 0, Short.MAX_VALUE))
+                                        .addGroup(ConvoPaneLayout.createSequentialGroup()
+                                                .addContainerGap()
+                                                .addGroup(ConvoPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                                        .addComponent(ConvoScroll, javax.swing.GroupLayout.PREFERRED_SIZE, 442, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                        .addGroup(ConvoPaneLayout.createSequentialGroup()
+                                                                .addGroup(ConvoPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                                                        .addComponent(MessageSep)
+                                                                        .addComponent(MessageField, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                                                .addComponent(SendButton, javax.swing.GroupLayout.PREFERRED_SIZE, 53, javax.swing.GroupLayout.PREFERRED_SIZE)))))
+                                .addContainerGap())
+        );
+        ConvoPaneLayout.setVerticalGroup(
+                ConvoPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                        .addGroup(ConvoPaneLayout.createSequentialGroup()
+                                .addContainerGap()
+                                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 21, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(18, 18, 18)
+                                .addComponent(ConvoScroll, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(ConvoPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                        .addGroup(ConvoPaneLayout.createSequentialGroup()
+                                                .addComponent(MessageField, javax.swing.GroupLayout.PREFERRED_SIZE, 13, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                                .addComponent(MessageSep, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                        .addComponent(SendButton, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addContainerGap())
+        );
+
+        javax.swing.GroupLayout MainPaneLayout = new javax.swing.GroupLayout(MainPane);
+        MainPane.setLayout(MainPaneLayout);
+        MainPaneLayout.setHorizontalGroup(
+                MainPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(MainPaneLayout.createSequentialGroup()
+                                .addComponent(UtilityPane, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(ConvoPane, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+        );
+        MainPaneLayout.setVerticalGroup(
+                MainPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(UtilityPane, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(ConvoPane, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+        );
+
+        getContentPane().add(MainPane, java.awt.BorderLayout.CENTER);
+
+        pack();
+        setLocationRelativeTo(null);
+    }// </editor-fold>
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {
+        // TODO add your handling code here:
+    }
+
+    private void AddTopicActionPerformed(java.awt.event.ActionEvent evt) {
+        // TODO add your handling code here:
+        String TopicName = TopicNameField.getText();
+        System.err.println("Showing dialog.....");
+        SubBox.add(new SubForm(TopicName));
+        TopicNameField.setText("");
+        pack();
+    }
+
+    private void SendButtonActionPerformed(java.awt.event.ActionEvent evt) {
+        // Add a textpane to combooBox
+        String message = MessageField.getText();
+        if(message.isEmpty()) return;
+        MsgBox msg = new MsgBox(message);
+        ConvoBox.add(msg);
+        pack();
+        MessageField.setText("");
+    }
+
+    private void sendHover(java.awt.event.MouseEvent evt) {
+        // TODO add your handling code here:
+        SendButton.setBackground(new Color(76,92,104));
+    }
+
+    private void sendUnhover(java.awt.event.MouseEvent evt) {
+        // TODO add your handling code here:
+        SendButton.setBackground(new Color(70,73,76));
+    }
+
+
+
+    private void TopicNameFieldActionPerformed(java.awt.event.ActionEvent evt) {
+        // TODO add your handling code here:
+    }
+
+    private void TopicNameFieldKeyPressed(java.awt.event.KeyEvent evt) {
+        // TODO add your handling code here:
+    }
+
+    /**
+     * @param args the command line arguments
+     */
+    public static void main(String args[]) {
+        /* Set the Nimbus look and feel */
+        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
+        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
+         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html
+         *//*
+        try {
+            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
+                if ("Nimbus".equals(info.getName())) {
+                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
+                    break;
+                }
+            }
+        } catch (ClassNotFoundException ex) {
+            java.util.logging.Logger.getLogger(DashFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (InstantiationException ex) {
+            java.util.logging.Logger.getLogger(DashFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (IllegalAccessException ex) {
+            java.util.logging.Logger.getLogger(DashFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
+            java.util.logging.Logger.getLogger(DashFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        }
+        //</editor-fold>
+
+        /* Create and display the form */
+        java.awt.EventQueue.invokeLater(new Runnable() {
+            public void run() {
+                new DashFrame().setVisible(true);
+            }
+        });
+    }
+
+    // Variables declaration - do not modify
+    private javax.swing.JButton AddTopic;
+    private javax.swing.JPanel ConvoBox;
+    private javax.swing.JPanel ConvoPane;
+    private javax.swing.JScrollPane ConvoScroll;
+    private javax.swing.JPanel MainPane;
+    private javax.swing.JTextField MessageField;
+    private javax.swing.JSeparator MessageSep;
+    private javax.swing.JButton SendButton;
+    private javax.swing.JPanel SubBox;
+    private javax.swing.JTextField TopicNameField;
+    private javax.swing.JPanel UtilityPane;
+    private javax.swing.JButton jButton1;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JSeparator jSeparator1;
+    private javax.swing.JSeparator jSeparator2;
+    // End of variables declaration
+}

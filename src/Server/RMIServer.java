@@ -27,6 +27,7 @@ public class RMIServer implements core.RMIServerInterface {
     private RMIUtility serverHandler;
 
     public RMIServer(String Host) throws RemoteException, NotBoundException {
+
         Topics = new HashMap<>();
         ClientList = new HashMap<>();
         Credential = new HashMap<>();
@@ -95,7 +96,7 @@ public class RMIServer implements core.RMIServerInterface {
     }
 
     @Override
-    public void Notify(String TopicLabel, String TriggeredBy, boolean type) {
+    public void Notify(String TopicLabel, String TriggeredBy, boolean type) throws RemoteException {
         // call remotely users methods for all client registered...0
         // submit callable for each client....
         System.err.println("Send notify to all clients:");
@@ -106,8 +107,7 @@ public class RMIServer implements core.RMIServerInterface {
                     ClientList.get(s).CLiNotify(TopicLabel, TriggeredBy, type);
                 } catch (RemoteException e) {
                     System.err.print("Impossible to invoke CliNotify from "+s+": removing it from clients:");
-                    ClientList.remove(s);
-                    Credential.remove(s);
+                    ManageConnection(s, null, null, "disconnect");
                     System.err.println("DONE");
                 }
                 System.err.println("DONE");
