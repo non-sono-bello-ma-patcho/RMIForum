@@ -37,13 +37,17 @@ public class User implements RMIClient{
     }
 
 
-    /*optimization function */
-    /*that method charge the data from the connected server*/
-    private void ChargeData(){
+    /*    auxiliary functions   */
+
+    public void CheckConnection(){
         if(!connected){
-            System.err.println("You are not connected, the client is unable to charge data!");
-            return;
+            System.err.println("You are not connected, operation failed");
+            System.exit(-1);
         }
+    }
+
+    private void ChargeData(){
+        CheckConnection();
         System.out.println("Trying to charging data from the server.....");
         try {
             ServerTopics = ServerConnected.getTopics(); /*inizializzo la hashmap ServerTopics */
@@ -67,18 +71,18 @@ public class User implements RMIClient{
     private  boolean ConnectionRequest(String host, String op) throws AlreadyBoundException,RemoteException {
         switch(op){
             case "connect":
-                if ( connected){
+                if (connected){
                     System.err.println("You are already connected");
                     return false;
                 }
                 System.out.println("Trying to connect to the server " + host + " ...");
 
                 try {
-                    pushRegistry = setRegistry(myListeningPort);
-                    ExportNBind(pushRegistry,this,"RMISharedClient",myListeningPort);
                     pullRegistry = LocateRegistry.getRegistry("localhost", 8000);
                     ServerConnected = (RMIServerInterface) pullRegistry.lookup("RMISharedServer");
                     /*InetAddress ia = InetAddress.getLocalHost();*/
+                    pushRegistry = setRegistry(myListeningPort);
+                    ExportNBind(pushRegistry,this,"RMISharedClient",myListeningPort);
                     boolean result = ServerConnected.ManageConnection(username,pswd,"localhost",op);
                     if(result) {
                         connected = true;
@@ -94,10 +98,7 @@ public class User implements RMIClient{
                 break;
 
             case "disconnect":
-                if(!connected){
-                    System.err.println("You are already disconnected");
-                    return true;
-                }
+                CheckConnection(); /* if you are not connected how could you think to disconnect??*/
                 try{
                     InetAddress ia = InetAddress.getLocalHost();
                     boolean result = ServerConnected.ManageConnection(username,pswd,ia.getHostAddress(),op);
@@ -120,10 +121,7 @@ public class User implements RMIClient{
 
 /* that method is for the topic registration..*/
     private boolean SubscribeRequest(String TopicName, String op) throws RemoteException {
-        if(!connected){
-            System.err.println("Permission denied! you are not connected!");
-            return false;
-        }
+        CheckConnection();
         switch(op){
             case "subscribe":
                 myTopics.replace(TopicName,true); /* indico nella mia hashmap che mi sono iscritto anche a quel topic */
@@ -139,30 +137,21 @@ public class User implements RMIClient{
     }
 
     private boolean AddTopicRequest(String TopicName) throws RemoteException {
-        if(!connected){
-            System.err.println("Permission denied! you are not connected!");
-            return false;
-        }
+        CheckConnection();
         return ServerConnected.addTopic(TopicName, username);
     }
 
     private boolean MessageRequest(MessageClass msg,String topicName) throws RemoteException {
-        if(!connected){
-            System.err.println("Permission denied! you are not connected!");
-            return false;
-        }
+        CheckConnection();
         ServerConnected.ManagePublish(msg,topicName);
         return true;
     }
 
     @Override
     public void CLiNotify() throws RemoteException {
-        if(!connected){
-            System.err.println("Permission denied! The client isn't connected");
-            return;
-        }
-        System.out.println("coglione di merda");
-        /*
+       /* CheckConnection();*/
+       System.out.println("Messagio del server!!!!!!!! la notify funge");
+/* vi e un grandeeee errore se decommento sta parte   ----------------------------->
         ServerTopics = ServerConnected.getTopics();
 
 

@@ -115,7 +115,7 @@ public class RMIServer implements core.RMIServerInterface {
             System.err.println("Trying to retrieve methods from "+address);
             RMIClient stub = getRemoteMethod(address);
             System.err.println("DONE");
-            stub.CLiNotify();
+            stub.CLiNotify(); /* cerca di mettere la notify dopo la manage connection.............*/
             if(ClientList.containsKey(username)) return false;
             ClientList.putIfAbsent(username, stub);
         } catch (RemoteException e) {
@@ -175,7 +175,7 @@ public class RMIServer implements core.RMIServerInterface {
         return true;
     }
 
-    public static void printInfo(RMIServer rs){
+    public static void printInfo(RMIServer rs){ /*should it be right for the client class too?*/
         System.out.println("Available Topics:");
         for(String t : rs.Topics.keySet()) System.out.println(t);
 
