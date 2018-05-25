@@ -157,7 +157,7 @@ public class User implements RMIClient{
        /*System.out.println("Messagio del server!!!!!!!! la notify funge");*/
         ServerTopics = ServerConnected.getTopics();
         if(ServerTopics.size() == 0){
-            System.out.println(ANSI_GREEN+"[Server message] : Welcome to Flaminforum!" + ANSI_RESET);
+            System.out.println(ANSI_GREEN+"[Server Message] : Welcome to Flamingorum!" + ANSI_RESET);
             return;
         }
 
