@@ -27,6 +27,8 @@ public class User implements RMIClient{
     private HashMap<String, TopicClass> ServerTopics;
     private HashMap<String, Boolean> myTopics;
     private HashMap<String,List<String>> TopicMessages;
+    public static final String ANSI_GREEN = "\u001B[32m";
+    public static final String ANSI_RESET = "\u001B[0m";
 
     public User(String nick, String password){
         username = nick;
@@ -57,10 +59,12 @@ public class User implements RMIClient{
         Set<String> mySetofKey = ServerTopics.keySet(); /* mi è utile per usare l'iterator */
         Iterator<String> myIterator = mySetofKey.iterator();
         while(myIterator.hasNext()){
-            String TopicName = ServerTopics.get(myIterator).getName();
+            String TopicName = myIterator.next();
+            System.err.println("topic name : "+ TopicName);
+
             myTopics.put(TopicName,false); /* inizializzo la hashmap contenete i miei topics (di default sono tutti false a connection time ) */
             TopicMessages.put(TopicName,ServerTopics.get(TopicName).ListMessages()); /* inizializzo la mia hashmap contenente ogni topic coi relativi mex */
-            myIterator.next();
+            /*myIterator.next();*/
         }
         System.out.println("DONE");
 
@@ -148,33 +152,37 @@ public class User implements RMIClient{
     }
 
     @Override
-    public void CLiNotify() throws RemoteException {
+    public synchronized void CLiNotify() throws RemoteException {
        /* CheckConnection();*/
-       System.out.println("Messagio del server!!!!!!!! la notify funge");
-/* vi e un grandeeee errore se decommento sta parte   ----------------------------->
+       /*System.out.println("Messagio del server!!!!!!!! la notify funge");*/
         ServerTopics = ServerConnected.getTopics();
-
+        if(ServerTopics.size() == 0){
+            System.out.println(ANSI_GREEN+"[Server message] : Welcome to Flaminforum!" + ANSI_RESET);
+            return;
+        }
 
         Set<String> setTopic = ServerTopics.keySet();
         Iterator<String> myIterator = setTopic.iterator();
         while(myIterator.hasNext()){
-            String TopicName = ServerTopics.get(myIterator).getName();
-            if(!myTopics.containsKey(myIterator)) {
-                System.out.println("Flamingorum has recently added:" + TopicName + " topic");
-                //String topicToAdd = ServerTopics.get(myIterator).getName();
+            /*System.err.println(myIteratory);*/
+
+            String TopicName = myIterator.next();
+
+            if(!myTopics.containsKey(TopicName)) {
+                System.out.println(ANSI_GREEN+"[Server Message] : Flamingorum has recently added the topic : " + TopicName + ANSI_RESET);
                 myTopics.put(TopicName, false);
                 TopicMessages.put(TopicName,ServerTopics.get(TopicName).ListMessages());
             }
             else if(myTopics.get(TopicName)){
                 if(ServerTopics.get(TopicName).ListMessages().size() > TopicMessages.get(TopicName).size()) {
                     TopicMessages.replace(TopicName, ServerTopics.get(TopicName).ListMessages());
-                    System.out.println("There are new messages on " + TopicName + " topic");
+                    System.out.println(ANSI_GREEN+"[Server Message] : There are new messages on " + TopicName + " topic" + ANSI_RESET);
                 }
             }
 
-            myIterator.next();
+           /* myIterator.next();*/
         }
-        */
+
     }
 
     private void remoteUnbound(){
