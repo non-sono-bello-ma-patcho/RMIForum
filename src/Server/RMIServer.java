@@ -1,16 +1,11 @@
 package Server;
 
 import core.*;
-import user.User;
 
-import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.rmi.AlreadyBoundException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
-import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
-import java.rmi.server.UnicastRemoteObject;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Scanner;
@@ -27,7 +22,6 @@ public class RMIServer implements core.RMIServerInterface {
     private RMIUtility serverHandler;
 
     public RMIServer(String Host) throws RemoteException, NotBoundException {
-
         Topics = new HashMap<>();
         ClientList = new HashMap<>();
         Credential = new HashMap<>();

@@ -163,7 +163,7 @@ public class User implements RMIClient{
             System.err.println("Permission denied! The client isn't connected");
             return;
         }
-        notifier.add(TopicLabel); // I need this for the gui...
+        // notifier.add(TopicLabel); // I need this for the gui...
         if(type){
             if(!username.equals(TriggeredBy))
                 System.out.println("Hai un nuovo messaggio da "+TriggeredBy+" su "+TopicLabel);
