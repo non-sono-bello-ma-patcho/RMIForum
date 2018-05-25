@@ -62,16 +62,6 @@ public class User implements RMIClient{
             if(TopicMessages.containsKey(k)) TopicMessages.replace(k, ServerTopics.get(k).ListMessages());
             else TopicMessages.put(k, ServerTopics.get(k).ListMessages());
         }
-
-       // Set<String> mySetofKey = ServerTopics.keySet(); /* mi è utile per usare l'iterator */
-       // Iterator<String> myIterator = mySetofKey.iterator();
-       // while(myIterator.hasNext()){
-       //     String TopicName = ServerTopics.get(myIterator).getName(); // solleva errore....
-       //     myTopics.put(TopicName,false); /* inizializzo la hashmap contenete i miei topics (di default sono tutti false a connection time ) */
-       //     TopicMessages.put(TopicName,ServerTopics.get(TopicName).ListMessages()); /* inizializzo la mia hashmap contenente ogni topic coi relativi mex */ // spreco di memoria, la lista può essere ottenuta in ogni momento da servertopics....
-       //     myIterator.next();
-       // }
-
     }
 
     /*method that try to connect/disconnect to the rmi server */

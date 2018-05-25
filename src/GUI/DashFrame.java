@@ -24,10 +24,10 @@ public class DashFrame extends javax.swing.JFrame {
     JFrame Caller;
 
     /**************************************************************************/
-    public void updateConvo(String TopicName){
+    public void updateConvo(){
         ConvoBox.removeAll();
         // add as many msgBox as the message in topic...
-        for(String msg : myClient.getConvo(TopicName)){
+        for(String msg : myClient.getConvo(TopicConvoName.getText())){
             ConvoBox.add(new MsgBox(msg));
         }
         ConvoBox.revalidate();
@@ -173,7 +173,7 @@ public class DashFrame extends javax.swing.JFrame {
             // flush convoBox
             TopicConvoName.setText(TopicName);
             setBackground(new java.awt.Color(139, 137, 130));
-            updateConvo(TopicName);
+            updateConvo();
             myClient.removeNotif(TopicName);
         }
     }
@@ -440,7 +440,7 @@ public class DashFrame extends javax.swing.JFrame {
         } catch (RemoteException e) {
             e.printStackTrace();
         }
-        updateConvo(TopicConvoName.getText());
+        updateConvo();
         updateTopic();
     }
 
