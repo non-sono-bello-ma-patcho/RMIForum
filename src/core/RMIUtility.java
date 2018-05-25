@@ -38,7 +38,7 @@ public class RMIUtility {
             ExportNBind(ServerRegistry, obj, Salias,serverPort);
 
             InetAddress ia = InetAddress.getLocalHost();
-            System.err.println("Server up and running on:"+ia.getHostAddress()+", type something to shutdown...");
+            System.err.println("Server up and running on:"+ia.getHostAddress()+", type something to shutdown..."); /* non va bene per il client*/
 
         } catch (RemoteException e) {
             System.err.println("Couldn't set registry, maybe you want to check stack trace?[S/n]");
