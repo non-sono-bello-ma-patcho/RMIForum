@@ -1,9 +1,10 @@
 package core;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TopicClass {
+public class TopicClass implements Serializable {
     private List<MessageClass> Convo;
     private List<String> Users;
     private String Name, Owner;
@@ -30,6 +31,13 @@ public class TopicClass {
 
     public List<String> ListUsers(){
         return Users;
+    }
+
+    public boolean hasUser(String user){
+        for(String s : ListUsers()){
+            if(s.equals(user)) return true;
+        }
+        return false;
     }
 
     public List<String> ListMessages(){
