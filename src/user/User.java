@@ -152,9 +152,12 @@ public class User implements RMIClient{
     }
 
     @Override
-    public synchronized void CLiNotify() throws RemoteException {
+    public synchronized void CLiNotify(String TopicLabel, String TriggeredBy, boolean type) throws RemoteException {
        /* CheckConnection();*/
        /*System.out.println("Messagio del server!!!!!!!! la notify funge");*/
+
+
+        /**************************************HO CAMBIATO I CAMPI DELLA CLINOTIFY, PERDONAMI******************************************/
         ServerTopics = ServerConnected.getTopics();
         if(ServerTopics.size() == 0){
             System.out.println(ANSI_GREEN+"[Server message] : Welcome to Flaminforum!" + ANSI_RESET);

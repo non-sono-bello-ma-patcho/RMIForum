@@ -138,7 +138,7 @@ public class RMIServer implements core.RMIServerInterface {
         return true;
     }
 
-    public static void printInfo(RMIServer rs){
+    public static void printInfo(RMIServer rs){ /*should it be right for the client class too?*/
         System.out.println("Available Topics:");
         for(String t : rs.Topics.keySet()) System.out.println(t);
 
