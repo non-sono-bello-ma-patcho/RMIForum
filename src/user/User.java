@@ -51,14 +51,16 @@ public class User implements RMIClient{
             return;
         }
         try {
+            System.err.println("Updating topics...");
             ServerTopics = ServerConnected.getTopics(); /*inizializzo la hashmap ServerTopics */
         } catch (RemoteException e) {
             e.printStackTrace();
         }
 
         for(String k : ServerTopics.keySet()){
-            myTopics.put(k, false);
-            TopicMessages.put(k, ServerTopics.get(k).ListMessages());
+            myTopics.putIfAbsent(k, false);
+            if(TopicMessages.containsKey(k)) TopicMessages.replace(k, ServerTopics.get(k).ListMessages());
+            else TopicMessages.put(k, ServerTopics.get(k).ListMessages());
         }
 
        // Set<String> mySetofKey = ServerTopics.keySet(); /* mi è utile per usare l'iterator */
@@ -180,59 +182,10 @@ public class User implements RMIClient{
             else
                 System.out.println("Hai creato il topic "+TopicLabel);
         }
+        System.err.println("Fetching data...");
         ChargeData();
-        /*
-        ServerTopics = ServerConnected.getTopics();
-
-
-        Set<String> setTopic = ServerTopics.keySet();
-        Iterator<String> myIterator = setTopic.iterator();
-        while(myIterator.hasNext()){
-            String TopicName = ServerTopics.get(myIterator).getName();
-            if(!myTopics.containsKey(myIterator)) {
-                System.out.println("Flamingorum has recently added:" + TopicName + " topic");
-                //String topicToAdd = ServerTopics.get(myIterator).getName();
-                myTopics.put(TopicName, false);
-                TopicMessages.put(TopicName,ServerTopics.get(TopicName).ListMessages());
-            }
-            else if(myTopics.get(TopicName)){
-                if(ServerTopics.get(TopicName).ListMessages().size() > TopicMessages.get(TopicName).size()) {
-                    TopicMessages.replace(TopicName, ServerTopics.get(TopicName).ListMessages());
-                    System.out.println("There are new messages on " + TopicName + " topic");
-                }
-            }
-
-            myIterator.next();
-        }
-        */
+        System.err.println("Fetched...");
     }
-/*
-    private void remoteExportation(User myUser){
-
-        try {
-            /*InetAddress ia = InetAddress.getLocalHost();
-            Stub = (core.RMIClient) UnicastRemoteObject.exportObject(this,1099);
-            pushRegistry = LocateRegistry.createRegistry(myListeningPort);
-            pushRegistry.bind("RMISharedClient",Stub);
-        } catch (RemoteException e) {
-            e.printStackTrace();
-        } catch (AlreadyBoundException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void remoteUnbound(User myUser){
-        try {
-            UnicastRemoteObject.unexportObject(myUser,true);
-            pushRegistry.unbind("RMISharedClient");
-
-        } catch (RemoteException e) {
-            e.printStackTrace();
-        } catch (NotBoundException e) {
-            e.printStackTrace();
-        }
-    }
-*/
 
     public String GetUsername(){
         return this.username;

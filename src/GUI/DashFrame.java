@@ -6,16 +6,12 @@ package GUI;
  * and open the template in the editor.
  */
 import core.MessageClass;
-import core.RMIClient;
 import user.User;
 
 import javax.swing.*;
 import java.awt.*;
 import java.net.UnknownHostException;
 import java.rmi.RemoteException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  *
@@ -28,7 +24,7 @@ public class DashFrame extends javax.swing.JFrame {
     JFrame Caller;
 
     /**************************************************************************/
-    private void updateConvo(String TopicName){
+    public void updateConvo(String TopicName){
         ConvoBox.removeAll();
         // add as many msgBox as the message in topic...
         for(String msg : myClient.getConvo(TopicName)){
@@ -37,9 +33,10 @@ public class DashFrame extends javax.swing.JFrame {
         ConvoBox.revalidate();
         ConvoBox.repaint();
         pack();
+        return;
     }
 
-    private void updateTopic(){
+    public void updateTopic(){
         SubBox.removeAll();
         for(String top : myClient.getTopics()){
             SubBox.add(new SubForm(top, myClient.getMyTopics().get(top)));
@@ -47,6 +44,7 @@ public class DashFrame extends javax.swing.JFrame {
         ConvoBox.revalidate();
         ConvoBox.repaint();
         pack();
+        return;
     }
     /**************************************************************************/
 

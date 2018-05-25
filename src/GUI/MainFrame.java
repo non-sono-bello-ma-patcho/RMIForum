@@ -232,7 +232,7 @@ public class MainFrame extends javax.swing.JFrame {
     private void ConnectButtonActionPerformed(java.awt.event.ActionEvent evt) {
         user = usernameField.getText();
         pw = passwordField.getSelectedText();
-        myClient.ConnectionRequest(user, pw, "192.168.1.113", "connect");
+        while(!myClient.ConnectionRequest(user, pw, HostField.getText(), "connect"));
         this.setVisible(false);
         DashFrame df = new DashFrame(myClient, HostField.getText(), this);
         df.setVisible(true);
