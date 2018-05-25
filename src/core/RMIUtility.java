@@ -28,7 +28,7 @@ public class RMIUtility {
         Calias = ca;
     }
 
-    public void serverSetUp(Object obj, String Localhost) throws UnknownHostException {
+    public void serverSetUp(Remote obj, String Localhost) throws UnknownHostException {
         System.setProperty("java.rmi.server.hostname", Localhost);
         System.setProperty("java.security.policy", "/tmp/RMIServer.policy");
         if (System.getSecurityManager()==null) System.setSecurityManager(new SecurityManager());
@@ -57,11 +57,11 @@ public class RMIUtility {
         if(sc.nextInt()!='n')*/ e.printStackTrace();
     }
 
-    public RMIClient getRemoteMethod(String host) throws RemoteException, NotBoundException {
+    public Remote getRemoteMethod(String host) throws RemoteException, NotBoundException {
         System.err.println("Trying to retrieve registry from"+host+"...");
         Registry registry = LocateRegistry.getRegistry(host, clientPort);
         System.err.print("LookingUp for share Object: ");
-        return (RMIClient) registry.lookup(Calias);
+        return registry.lookup(Calias);
     }
 
     private Registry setRegistry(int port) throws RemoteException {
@@ -72,7 +72,7 @@ public class RMIUtility {
         }
     }
 
-    private void ExportNBind(Registry reg, Object obj, String alias, int port) throws AlreadyBoundException, RemoteException {
+    private void ExportNBind(Registry reg, Remote obj, String alias, int port) throws AlreadyBoundException, RemoteException {
         Remote stub;
         if(obj instanceof RMIServer) stub = (RMIServerInterface) UnicastRemoteObject.exportObject((Remote) obj, port);
         else stub = (RMIClient) UnicastRemoteObject.exportObject((Remote) obj, port);

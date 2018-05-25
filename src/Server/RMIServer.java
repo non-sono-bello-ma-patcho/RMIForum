@@ -59,7 +59,7 @@ public class RMIServer implements core.RMIServerInterface {
                 // init conversation with client...
                 try {
                     System.err.println("Trying to retrieve methods from " + address);
-                    RMIClient stub = serverHandler.getRemoteMethod(address);
+                    RMIClient stub = (RMIClient) serverHandler.getRemoteMethod(address);
                     System.err.println("DONE");
                     ClientList.putIfAbsent(username, stub);
                 } catch (RemoteException e) {
@@ -117,8 +117,8 @@ public class RMIServer implements core.RMIServerInterface {
 
     @Override
     public boolean ManagePublish(MessageClass msg, String TopicName) throws RemoteException {
-        System.err.println("Publishing |"+msg.getFormatMsg()+"| to ["+TopicName+"]!");
         if(!Topics.get(TopicName).hasUser(msg.getUser())) return false;
+        System.err.println("Publishing |"+msg.getFormatMsg()+"| to ["+TopicName+"]!");
         (Topics.get(TopicName)).addMessage(msg);
         Notify(TopicName, msg.getUser(), true); // update local users convos...
         return true;

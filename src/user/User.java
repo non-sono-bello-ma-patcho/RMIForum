@@ -81,26 +81,17 @@ public class User implements RMIClient{
         ServerHost = host;
         switch(op){
             case "connect":
-                if ( connected){
+                if (connected){
                     System.err.println("You are already connected");
                     return false;
                 }
                 try {
-                    pullRegistry = LocateRegistry.getRegistry(host, 1969);
-                    ServerConnected = (RMIServerInterface) pullRegistry.lookup("RMISharedServer");
-                    InetAddress ia = InetAddress.getLocalHost();
-                    System.out.println(java.net.InetAddress.getLocalHost());
-                    boolean result = ServerConnected.ManageConnection(username,pswd,myHost,op);
-                    if(result) {
-                        connected = true;
-                        ChargeData(); /*initialize the hashmaps */
-                    }
-                    return result;
+                    ServerConnected = (RMIServerInterface) serverHandler.getRemoteMethod(host);
+                    connected = ServerConnected.ManageConnection(username,pswd,myHost,op);
+                    return connected;
                 } catch (RemoteException e) {
                     e.printStackTrace();
                 } catch (NotBoundException e) {
-                    e.printStackTrace();
-                } catch (UnknownHostException e) {
                     e.printStackTrace();
                 }
                 break;
