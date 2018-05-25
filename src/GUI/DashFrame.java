@@ -50,14 +50,6 @@ public class DashFrame extends javax.swing.JFrame {
 
 
     /*-----------------------------------------------------------------------*/
-    private int getContentHeight(String content) {
-        JEditorPane dummyEditorPane=new JEditorPane();
-        dummyEditorPane.setSize(290,Short.MAX_VALUE);
-        dummyEditorPane.setText(content);
-
-        return dummyEditorPane.getPreferredSize().height;
-    }
-
     private class MsgBox extends javax.swing.JTextArea{
         public MsgBox(String Message){
             setColumns(20);
@@ -172,6 +164,7 @@ public class DashFrame extends javax.swing.JFrame {
             // TODO add your handling code here:
             // flush convoBox
             TopicConvoName.setText(TopicName);
+            SendButton.setEnabled(Triggered);
             setBackground(new java.awt.Color(139, 137, 130));
             updateConvo();
             myClient.removeNotif(TopicName);
@@ -187,6 +180,7 @@ public class DashFrame extends javax.swing.JFrame {
         myClient = user;
         Caller = c;
         updateTopic();
+        SendButton.setEnabled(false);
         // populate convoBox
     }
 

@@ -11,7 +11,6 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.Scanner;
 
 public class RMIUtility {
     private Registry ServerRegistry;
@@ -38,7 +37,7 @@ public class RMIUtility {
             ExportNBind(ServerRegistry, obj, Salias,serverPort);
 
             InetAddress ia = InetAddress.getLocalHost();
-            System.err.println("Server up and running on:"+ia.getHostAddress()+", type something to shutdown...");
+            System.err.println("Server up and running on:"+Localhost+", type something to shutdown...");
 
         } catch (RemoteException e) {
             System.err.println("Couldn't set registry, maybe you want to check stack trace?[S/n]");
