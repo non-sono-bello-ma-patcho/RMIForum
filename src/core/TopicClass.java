@@ -41,6 +41,8 @@ public class TopicClass implements Serializable {
     }
 
     public List<String> ListMessages(){
+        if(Convo.isEmpty()) return null;
+        System.err.println("Listing messages...");
         List<String> tmp = new ArrayList<>();
         for(MessageClass m : Convo){
             tmp.add(m.getFormatMsg());

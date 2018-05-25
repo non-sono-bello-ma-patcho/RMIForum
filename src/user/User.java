@@ -133,7 +133,10 @@ public class User implements RMIClient{
             System.err.println("Permission denied! you are not connected!");
             return false;
         }
-        return ServerConnected.addTopic(TopicName, username);
+        if (ServerConnected.addTopic(TopicName, username))
+            if(SubscribeRequest(TopicName, "subscribe"))
+                return MessageRequest(new MessageClass(username, "Benvenuto in "+TopicName), TopicName);
+        return false;
     }
 
     public boolean MessageRequest(MessageClass msg,String topicName) throws RemoteException {
@@ -198,6 +201,10 @@ public class User implements RMIClient{
 
     public HashMap<String, Boolean> getMyTopics() {
         return myTopics;
+    }
+
+    public synchronized HashMap<String, TopicClass> getServerTopics(){
+        return ServerTopics;
     }
 
     public String getUsername() {

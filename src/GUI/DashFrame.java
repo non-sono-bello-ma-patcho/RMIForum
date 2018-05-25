@@ -6,12 +6,14 @@ package GUI;
  * and open the template in the editor.
  */
 import core.MessageClass;
+import core.TopicClass;
 import user.User;
 
 import javax.swing.*;
 import java.awt.*;
 import java.net.UnknownHostException;
 import java.rmi.RemoteException;
+import java.util.HashMap;
 
 /**
  *
@@ -23,10 +25,29 @@ public class DashFrame extends javax.swing.JFrame {
     String ServerHost;
     JFrame Caller;
 
+    private class PollingThread extends Thread{
+        private User toListen;
+        public PollingThread(User u){
+            toListen = u;
+        }
+
+        @Override
+        public void run(){
+            HashMap<String, TopicClass> status = toListen.getServerTopics();
+            while(status==toListen.getServerTopics());
+            status = toListen.getServerTopics();
+            System.err.println("Updating....");
+            updateTopic();
+        }
+
+    }
+
+
     /**************************************************************************/
     public void updateConvo(){
         ConvoBox.removeAll();
         // add as many msgBox as the message in topic...
+        if(!myClient.getTopics().contains(TopicConvoName)) return;
         for(String msg : myClient.getConvo(TopicConvoName.getText())){
             ConvoBox.add(new MsgBox(msg));
         }
@@ -181,6 +202,8 @@ public class DashFrame extends javax.swing.JFrame {
         Caller = c;
         updateTopic();
         SendButton.setEnabled(false);
+        PollingThread pt = new PollingThread(myClient);
+        pt.start();
         // populate convoBox
     }
 
