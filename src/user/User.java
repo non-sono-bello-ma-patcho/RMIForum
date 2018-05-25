@@ -2,15 +2,11 @@ package user;
 import core.*;
 
 
-import java.net.InetAddress;
-import java.net.ServerSocket;
 import java.net.UnknownHostException;
-import java.rmi.AlreadyBoundException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
-import java.rmi.server.UnicastRemoteObject;
 import java.util.*;
 
 
@@ -28,7 +24,7 @@ public class User implements RMIClient{
     private String password;
     private RMIUtility ClientHandler;
     private HashMap<String, TopicClass> ServerTopics;
-    private HashMap<String, List<String>> TopicsMessages;
+    private HashMap<String, List<MessageClass>> TopicsMessages;
     public static final String ANSI_GREEN = "\u001B[32m";
     public static final String ANSI_BLUE = "\u001B[34m";
     public static final String ANSI_RESET = "\u001B[0m";
@@ -59,8 +55,8 @@ public class User implements RMIClient{
         System.out.println(ANSI_BLUE+ "[Client Message] : Trying to fetching data from the server....."+ANSI_RESET);
         ServerTopics = ServerConnected.getTopics();
         for(String k : ServerTopics.keySet()) {
-            if (TopicsMessages.containsKey(k)) TopicsMessages.replace(k, ServerTopics.get(k).ListMessages());
-            else TopicsMessages.put(k, ServerTopics.get(k).ListMessages());
+            if (TopicsMessages.containsKey(k)) TopicsMessages.replace(k, ServerTopics.get(k).getMessagesAsMessage());
+            else TopicsMessages.put(k, ServerTopics.get(k).getMessagesAsMessage());
         }
         System.out.println(ANSI_BLUE+"[Client Message] : Done."+ANSI_RESET);
     }
@@ -95,12 +91,12 @@ public class User implements RMIClient{
                 System.out.println(ANSI_BLUE+"[Client Message] : Trying to disconnect from the server..."+ANSI_RESET);
                 CheckConnection();
                 try {
-                    connected = ServerConnected.ManageConnection(username, password, this.host, op);
-                    if (!connected){
+                    if(ServerConnected.ManageConnection(username, password, this.host, op)) {
+                        connected = false;
                         ClientHandler.RMIshutDown(this);
-                        System.out.println(ANSI_BLUE+"[Client Message] : Done."+ANSI_RESET);
+                        System.out.println(ANSI_BLUE + "[Client Message] : Done." + ANSI_RESET);
+                        return true;
                     }
-                    return connected;
                 }catch (NotBoundException e) {
                     e.printStackTrace();
                 }
@@ -156,41 +152,11 @@ public class User implements RMIClient{
                 System.out.println(ANSI_GREEN+"[Server Message] : You have created a new topic : "+TopicLabel+ ANSI_RESET);
         }
         ChargeData();
-
-
-
-        /****************************************************************************************************************
-        ServerTopics = ServerConnected.getTopics();
-        if(ServerTopics.size() == 0){
-            System.out.println(ANSI_GREEN+"[Server Message] : Welcome to Flamingorum!" + ANSI_RESET);
-            return;
-        }
-
-        Set<String> setTopic = ServerTopics.keySet();
-        Iterator<String> myIterator = setTopic.iterator();
-        while(myIterator.hasNext()){
-
-
-            String TopicName = myIterator.next();
-
-            if(!myTopics.containsKey(TopicName)) {
-                System.out.println(ANSI_GREEN+"[Server Message] : Flamingorum has recently added the topic : " + TopicName + ANSI_RESET);
-                myTopics.put(TopicName, false);
-                TopicMessages.put(TopicName,ServerTopics.get(TopicName).ListMessages());
-            }
-            else if(myTopics.get(TopicName)){
-                if(ServerTopics.get(TopicName).ListMessages().size() > TopicMessages.get(TopicName).size()) {
-                    TopicMessages.replace(TopicName, ServerTopics.get(TopicName).ListMessages());
-                    System.out.println(ANSI_GREEN+"[Server Message] : There are new messages on " + TopicName + " topic" + ANSI_RESET);
-                }
-            }
-            ************************************************************************************************************/
-
-
     }
 
 
-    /*          getters       */
+    /*          getters          */
+
     public String GetUsername(){
         return this.username;
     }
@@ -203,41 +169,56 @@ public class User implements RMIClient{
         return this.connected;
     }
 
-
-
-
-    public static void main(String[] args) {
-        User myUser = null;
-        try {
-            myUser = new User("localhost");
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
+    /*      Debugging function     */
+    private void PrintMap(){
+        for(String k :  ServerTopics.keySet()){
+            System.out.println("[Debugging] : Topic = "+"["+k+"]");
+            for(MessageClass m : TopicsMessages.get(k))
+            System.out.println("                          "+"["+m.getUser()+"] : "+m.getText());
         }
-        try {
-            if (!myUser.ConnectionRequest(args[0],"Mortino","12345", "connect")) {
-                System.err.println("[Client Error Message] : Mortino,Something gone wrong,retry to connect");
-                System.exit(-1);
+    }
+
+    public static void main(String[] args) throws UnknownHostException,RemoteException{
+        /*debug messages */
+        MessageClass myMessage = new MessageClass("Mortino", "Sarebbe bello vedere i piedi di Re Julien da quel buchino!");
+        MessageClass msg = new MessageClass("Mortino","Qualcuno mi risponde???");
+        MessageClass msg2 = new MessageClass("Mortino","Sapete come si crea un \"Topic\"???");
+        /* end messages */
+
+        User myUser = new User("localhost");
+        if (!myUser.ConnectionRequest(args[0],"Mortino","12345", "connect")) {
+            System.err.println("[Client Error Message] : Mortino,Something gone wrong,retry to connect");
+            System.exit(-1);
+        }
+        if (!myUser.AddTopicRequest("Gloryhole"))
+            System.err.println("[Client Error Message] :The topic Gloryhole already exist");
+        if (!myUser.AddTopicRequest("HelpCenter"))
+            System.err.println("[Client Error Message] :The topic HelpCenter already exist");
+
+        if (!myUser.SubscribeRequest("Gloryhole", "subscribe"))
+            System.err.println("[Client Error Message] : Something gone wrong,retry to subscribe on Gloryhole topic");
+        else {
+            if (!myUser.MessageRequest(myMessage, "Gloryhole")) {
+                System.err.println("[Client Error Message] :Something gone wrong, message not sent to Gloryhole");
             }
-            if (!myUser.AddTopicRequest("Gloryhole"))
-                System.err.println("[Client Error Message] :The topic Gloryhole already exist");
-
-
-            if (!myUser.SubscribeRequest("Gloryhole", "subscribe"))
-                System.err.println("[Client Error Message] : Something gone wrong,retry to subscribe on Gloryhole topic");
-            else {
-                MessageClass myMessage = new MessageClass("Mortino", "Sarebbe bello vedere i piedi di Re Julien da quel buchino!");
-                if (!myUser.MessageRequest(myMessage, "Gloryhole")) {
-                    System.err.println("[Client Error Message] :Something gone wrong, message not sent to Gloryhole");
-
-                }
+            if (!myUser.MessageRequest(msg, "Gloryhole")) {
+                System.err.println("[Client Error Message] :Something gone wrong, message not sent to Gloryhole");
             }
-            if (!myUser.ConnectionRequest(args[0],myUser.username,myUser.password, "disconnect")) {
-                System.err.println("[Client Error Message] : Mortino ,Something gone wrong,cannot disconnect from the server");
-                System.exit(-1); /* that means that the server returned false*/
+        }
+        if (!myUser.SubscribeRequest("Gloryhole", "unsubscribe"))
+            System.err.println("[Client Error Message] : Something gone wrong,retry to unsubscribe on Gloryhole topic");
+        if (!myUser.SubscribeRequest("HelpCenter", "subscribe"))
+            System.err.println("[Client Error Message] : Something gone wrong,retry to subscribe on HelpCenter topic");
+        else{
+            if (!myUser.MessageRequest(msg2, "HelpCenter")) {
+                System.err.println("[Client Error Message] :Something gone wrong, message not sent to HelpCenter");
             }
+        }
 
-        }catch (RemoteException e) {
-            e.printStackTrace();
+        myUser.PrintMap();
+        if (!myUser.ConnectionRequest(args[0],myUser.username,myUser.password, "disconnect")) {
+            System.err.println("[Client Error Message] : Mortino ,Something gone wrong,cannot disconnect from the server");
+            System.exit(-1);
         }
     }
 }
