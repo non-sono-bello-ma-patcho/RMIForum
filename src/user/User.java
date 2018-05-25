@@ -27,6 +27,8 @@ public class User implements RMIClient{
     private HashMap<String, TopicClass> ServerTopics;
     private HashMap<String, Boolean> myTopics;
     private HashMap<String,List<String>> TopicMessages;
+    public static final String ANSI_GREEN = "\u001B[32m";
+    public static final String ANSI_RESET = "\u001B[0m";
 
     public User(String nick, String password){
         username = nick;
@@ -37,13 +39,17 @@ public class User implements RMIClient{
     }
 
 
-    /*optimization function */
-    /*that method charge the data from the connected server*/
-    private void ChargeData(){
+    /*    auxiliary functions   */
+
+    public void CheckConnection(){
         if(!connected){
-            System.err.println("You are not connected, the client is unable to charge data!");
-            return;
+            System.err.println("You are not connected, operation failed");
+            System.exit(-1);
         }
+    }
+
+    private void ChargeData(){
+        CheckConnection();
         System.out.println("Trying to charging data from the server.....");
         try {
             ServerTopics = ServerConnected.getTopics(); /*inizializzo la hashmap ServerTopics */
@@ -53,10 +59,12 @@ public class User implements RMIClient{
         Set<String> mySetofKey = ServerTopics.keySet(); /* mi è utile per usare l'iterator */
         Iterator<String> myIterator = mySetofKey.iterator();
         while(myIterator.hasNext()){
-            String TopicName = ServerTopics.get(myIterator).getName();
+            String TopicName = myIterator.next();
+            System.err.println("topic name : "+ TopicName);
+
             myTopics.put(TopicName,false); /* inizializzo la hashmap contenete i miei topics (di default sono tutti false a connection time ) */
             TopicMessages.put(TopicName,ServerTopics.get(TopicName).ListMessages()); /* inizializzo la mia hashmap contenente ogni topic coi relativi mex */
-            myIterator.next();
+            /*myIterator.next();*/
         }
         System.out.println("DONE");
 
@@ -67,18 +75,18 @@ public class User implements RMIClient{
     private  boolean ConnectionRequest(String host, String op) throws AlreadyBoundException,RemoteException {
         switch(op){
             case "connect":
-                if ( connected){
+                if (connected){
                     System.err.println("You are already connected");
                     return false;
                 }
                 System.out.println("Trying to connect to the server " + host + " ...");
 
                 try {
-                    pushRegistry = setRegistry(myListeningPort);
-                    ExportNBind(pushRegistry,this,"RMISharedClient",myListeningPort);
                     pullRegistry = LocateRegistry.getRegistry("localhost", 8000);
                     ServerConnected = (RMIServerInterface) pullRegistry.lookup("RMISharedServer");
                     /*InetAddress ia = InetAddress.getLocalHost();*/
+                    pushRegistry = setRegistry(myListeningPort);
+                    ExportNBind(pushRegistry,this,"RMISharedClient",myListeningPort);
                     boolean result = ServerConnected.ManageConnection(username,pswd,"localhost",op);
                     if(result) {
                         connected = true;
@@ -94,10 +102,7 @@ public class User implements RMIClient{
                 break;
 
             case "disconnect":
-                if(!connected){
-                    System.err.println("You are already disconnected");
-                    return true;
-                }
+                CheckConnection(); /* if you are not connected how could you think to disconnect??*/
                 try{
                     InetAddress ia = InetAddress.getLocalHost();
                     boolean result = ServerConnected.ManageConnection(username,pswd,ia.getHostAddress(),op);
@@ -120,10 +125,7 @@ public class User implements RMIClient{
 
 /* that method is for the topic registration..*/
     private boolean SubscribeRequest(String TopicName, String op) throws RemoteException {
-        if(!connected){
-            System.err.println("Permission denied! you are not connected!");
-            return false;
-        }
+        CheckConnection();
         switch(op){
             case "subscribe":
                 myTopics.replace(TopicName,true); /* indico nella mia hashmap che mi sono iscritto anche a quel topic */
@@ -139,53 +141,48 @@ public class User implements RMIClient{
     }
 
     private boolean AddTopicRequest(String TopicName) throws RemoteException {
-        if(!connected){
-            System.err.println("Permission denied! you are not connected!");
-            return false;
-        }
+        CheckConnection();
         return ServerConnected.addTopic(TopicName, username);
     }
 
     private boolean MessageRequest(MessageClass msg,String topicName) throws RemoteException {
-        if(!connected){
-            System.err.println("Permission denied! you are not connected!");
-            return false;
-        }
+        CheckConnection();
         ServerConnected.ManagePublish(msg,topicName);
         return true;
     }
 
     @Override
-    public void CLiNotify() throws RemoteException {
-        if(!connected){
-            System.err.println("Permission denied! The client isn't connected");
+    public synchronized void CLiNotify() throws RemoteException {
+       /* CheckConnection();*/
+       /*System.out.println("Messagio del server!!!!!!!! la notify funge");*/
+        ServerTopics = ServerConnected.getTopics();
+        if(ServerTopics.size() == 0){
+            System.out.println(ANSI_GREEN+"[Server message] : Welcome to Flaminforum!" + ANSI_RESET);
             return;
         }
-        System.out.println("coglione di merda");
-        /*
-        ServerTopics = ServerConnected.getTopics();
-
 
         Set<String> setTopic = ServerTopics.keySet();
         Iterator<String> myIterator = setTopic.iterator();
         while(myIterator.hasNext()){
-            String TopicName = ServerTopics.get(myIterator).getName();
-            if(!myTopics.containsKey(myIterator)) {
-                System.out.println("Flamingorum has recently added:" + TopicName + " topic");
-                //String topicToAdd = ServerTopics.get(myIterator).getName();
+            /*System.err.println(myIteratory);*/
+
+            String TopicName = myIterator.next();
+
+            if(!myTopics.containsKey(TopicName)) {
+                System.out.println(ANSI_GREEN+"[Server Message] : Flamingorum has recently added the topic : " + TopicName + ANSI_RESET);
                 myTopics.put(TopicName, false);
                 TopicMessages.put(TopicName,ServerTopics.get(TopicName).ListMessages());
             }
             else if(myTopics.get(TopicName)){
                 if(ServerTopics.get(TopicName).ListMessages().size() > TopicMessages.get(TopicName).size()) {
                     TopicMessages.replace(TopicName, ServerTopics.get(TopicName).ListMessages());
-                    System.out.println("There are new messages on " + TopicName + " topic");
+                    System.out.println(ANSI_GREEN+"[Server Message] : There are new messages on " + TopicName + " topic" + ANSI_RESET);
                 }
             }
 
-            myIterator.next();
+           /* myIterator.next();*/
         }
-        */
+
     }
 
     private void remoteUnbound(){
