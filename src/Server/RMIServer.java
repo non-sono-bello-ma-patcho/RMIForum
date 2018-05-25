@@ -21,114 +21,66 @@ public class RMIServer implements core.RMIServerInterface {
     private HashMap<String, String> Credential;
     private PoolClass pool;
     private Registry ServerRegistry;
-    private final int serverPort = 8000;
+    private final int serverPort = 1969;
     private final int clientPort = 1099;
+    private String myHost;
+    private RMIUtility serverHandler;
 
-    /*------------------------Auxiliary functions--------------------------*/
+    public RMIServer(String Host) throws RemoteException, NotBoundException {
 
-    private void serverSetUp() throws UnknownHostException {
-        System.setProperty("java.rmi.server.hostname", InetAddress.getLocalHost().getHostAddress());
-        System.setProperty("java.security.policy", "/home/shinon/IdeaProjects/RMIForum/src/Server/RMIServer.policy");
-        if (System.getSecurityManager()==null) System.setSecurityManager(new SecurityManager());
-        // RMIServer obj = new RMIServer();
-        String alias = "RMISharedServer";
-        try {
-            ServerRegistry=setRegistry(serverPort);
-            ExportNBind(ServerRegistry, this, alias,serverPort);
-
-            InetAddress ia = InetAddress.getLocalHost();
-            System.err.println("Server up and running on:"+InetAddress.getLocalHost().getHostAddress()+", type something to shutdown...");
-            Scanner sc = new Scanner(System.in);
-            System.err.println("You typed: "+sc.next());
-            RMIshutDown();
-        } catch (RemoteException e) {
-            System.err.println("Couldn't set registry, maybe you want to check stack trace?[S/n]");
-            showStackTrace(e);
-        } catch (AlreadyBoundException e) {
-            System.err.println("Couldn't export and bind, maybe you want to check stack trace?[S/n]");
-            showStackTrace(e);
-        } catch (UnknownHostException e) {
-            System.err.println("Couldn't get localhost, maybe you want to check stack trace?[S/n]");
-            showStackTrace(e);
-        } catch (NotBoundException e) {
-            System.err.println("Couldn't unbound, maybe you want to check stack trace?[S/n]");
-            showStackTrace(e);        }
-    }
-
-    static void showStackTrace(Exception e){
-        /*Scanner sc = new Scanner(System.in);
-        if(sc.nextInt()!='n')*/ e.printStackTrace();
-    }
-
-    private RMIClient getRemoteMethod(String host) throws RemoteException, NotBoundException {
-        System.err.println("Trying to retrieve registry from"+host+"...");
-        Registry registry = LocateRegistry.getRegistry(host, clientPort);
-        System.err.print("LookingUp for share Object: ");
-        return (RMIClient) registry.lookup("RMISharedClient");
-    }
-
-    private Registry setRegistry(int port) throws RemoteException {
-        try {
-            return LocateRegistry.createRegistry(port);
-        } catch (RemoteException e) {
-            return LocateRegistry.getRegistry(port);
-        }
-    }
-
-    private void ExportNBind(Registry reg, RMIServer obj, String alias, int port) throws AlreadyBoundException, RemoteException {
-        RMIServerInterface stub = (RMIServerInterface) UnicastRemoteObject.exportObject(obj, port);
-        reg.bind(alias, stub);
-    }
-
-    public void RMIshutDown() throws RemoteException, NotBoundException {
-        ServerRegistry.unbind("RMISharedServer");
-        UnicastRemoteObject.unexportObject(this, true);
-        pool.StopPool();
-    }
-
-    /*----------------------------------------------------------------------*/
-
-    public RMIServer(){
         Topics = new HashMap<>();
         ClientList = new HashMap<>();
         Credential = new HashMap<>();
         pool = new PoolClass();
-
+        serverHandler = new RMIUtility(ServerRegistry, serverPort, clientPort, "RMISharedServer", "RMISharedClient");
+        myHost = Host;
         // here start the server...
         try {
-            serverSetUp();
+            serverHandler.serverSetUp(this, Host);
         } catch (UnknownHostException e) {
             System.err.println("Couldn't setup server...");
         }
+        Scanner sc = new Scanner(System.in);
+        System.err.println("You typed: "+sc.next());
+        shutDown();
     }
 
     public void shutDown() throws RemoteException, NotBoundException {
-        RMIshutDown();
+        serverHandler.RMIshutDown(this);
         pool.StopPool();
     }
 
     @Override
     public synchronized boolean ManageConnection(String username, String password, String address, String op) throws RemoteException {
-        System.err.println("Adding ["+username+"] to Users!");
-        // init conversation with client...
-        try {
-            System.err.println("Trying to retrieve methods from "+address);
-            RMIClient stub = getRemoteMethod(address);
-            System.err.println("DONE");
-            stub.CLiNotify();
-            if(ClientList.containsKey(username)) return false;
-            ClientList.putIfAbsent(username, stub);
-        } catch (RemoteException e) {
-            System.err.println("Remote problems pal....");
-            e.printStackTrace();
-            return false;
-        } catch (NotBoundException e) {
-            System.err.println("Looks like there no shared object on that server...");
-            return false;
+        switch (op) {
+            case "connect":
+                if (ClientList.containsKey(username)) return false;
+                System.err.println("Adding [" + username + "] to Users!");
+                // init conversation with client...
+                try {
+                    System.err.println("Trying to retrieve methods from " + address);
+                    RMIClient stub = (RMIClient) serverHandler.getRemoteMethod(address);
+                    System.err.println("DONE");
+                    ClientList.putIfAbsent(username, stub);
+                } catch (RemoteException e) {
+                    System.err.println("Remote problems pal....");
+                    e.printStackTrace();
+                    return false;
+                } catch (NotBoundException e) {
+                    System.err.println("Looks like there no shared object on that server...");
+                    return false;
+                }
+                Credential.put(username, password);
+                break;
+            case "disconnect":
+                if (!ClientList.containsKey(username)) return false;
+                System.err.print("Removing [" + username + "] from Users:");
+                ClientList.remove(username);
+                Credential.remove(username);
+                System.err.println("DONE");
+                break;
         }
-        Credential.put(username, password);
         return true;
-        // disconnection need to be added
     }
 
     @Override
@@ -144,22 +96,32 @@ public class RMIServer implements core.RMIServerInterface {
     }
 
     @Override
-    public void Notify() throws RemoteException {
+    public void Notify(String TopicLabel, String TriggeredBy, boolean type) throws RemoteException {
         // call remotely users methods for all client registered...0
         // submit callable for each client....
         System.err.println("Send notify to all clients:");
         for(String s : ClientList.keySet()){
-            System.err.print("Notifying ["+s+"]:");
-            ClientList.get(s).CLiNotify();
-            System.err.println("DONE");
+            if(Topics.get(TopicLabel).hasUser(s) || !type) { // notify only if a topic has been added or the user is subscribed...
+                System.err.print("Notifying [" + s + "]:");
+                try {
+                    ClientList.get(s).CLiNotify(TopicLabel, TriggeredBy, type);
+                } catch (RemoteException e) {
+                    System.err.print("Impossible to invoke CliNotify from "+s+": removing it from clients:");
+                    ManageConnection(s, null, null, "disconnect");
+                    System.err.println("DONE");
+                }
+                System.err.println("DONE");
+            }
         }
     }
 
     @Override
-    public void ManagePublish(MessageClass msg, String TopicName) throws RemoteException {
+    public boolean ManagePublish(MessageClass msg, String TopicName) throws RemoteException {
+        if(!Topics.get(TopicName).hasUser(msg.getUser())) return false;
         System.err.println("Publishing |"+msg.getFormatMsg()+"| to ["+TopicName+"]!");
         (Topics.get(TopicName)).addMessage(msg);
-        Notify(); // update local users convos...
+        Notify(TopicName, msg.getUser(), true); // update local users convos...
+        return true;
     }
 
     @Override
@@ -168,10 +130,11 @@ public class RMIServer implements core.RMIServerInterface {
     }
 
     @Override
-    public synchronized boolean addTopic(String TopicName, String TopicOwner){
+    public synchronized boolean addTopic(String TopicName, String TopicOwner) throws RemoteException {
         if(Topics.containsKey(TopicName)) return false;
         System.err.println("Adding ["+TopicName+"] to Topics!");
         Topics.put(TopicName, new TopicClass(TopicName, TopicOwner));
+        Notify(TopicName, TopicOwner, false);
         return true;
     }
 
@@ -191,7 +154,14 @@ public class RMIServer implements core.RMIServerInterface {
     }
 
     public static void main(String [] args) throws InterruptedException {
-        RMIServer rs = new RMIServer();
+        RMIServer rs = null;
+        try {
+            rs = new RMIServer(args[0]);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        } catch (NotBoundException e) {
+            e.printStackTrace();
+        }
         printInfo(rs);
     }
 }
