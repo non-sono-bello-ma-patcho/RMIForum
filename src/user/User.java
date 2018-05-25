@@ -152,9 +152,34 @@ public class User implements RMIClient{
     }
 
     @Override
-    public synchronized void CLiNotify() throws RemoteException {
+    public synchronized void CLiNotify(String TopicLabel, String TriggeredBy, boolean type) throws RemoteException {
        /* CheckConnection();*/
        /*System.out.println("Messagio del server!!!!!!!! la notify funge");*/
+
+
+        /**************************************HO CAMBIATO I CAMPI DELLA CLINOTIFY, PERDONAMI******************************************
+         * la clinotify assomiglierebbe a questo, molto più veloce, meno controlli:
+        if(!connected){
+            System.err.println("Permission denied! The client isn't connected");
+            return;
+        }
+        notifier.add(TopicLabel); // I need this for the gui...
+        if(type){
+            if(!username.equals(TriggeredBy))
+                System.out.println("Hai un nuovo messaggio da "+TriggeredBy+" su "+TopicLabel);
+            else
+                System.out.println("Hai inviato un nuovo messaggio su "+TopicLabel);
+        }
+        else{
+            if(!username.equals(TriggeredBy))
+                System.out.println(TriggeredBy+" ha creato il topic "+TopicLabel);
+            else
+                System.out.println("Hai creato il topic "+TopicLabel);
+        }
+        System.err.println("Fetching data...");
+        ChargeData();
+        System.err.println("Fetched...");
+        ******************************************************************************************************************************/
         ServerTopics = ServerConnected.getTopics();
         if(ServerTopics.size() == 0){
             System.out.println(ANSI_GREEN+"[Server Message] : Welcome to Flamingorum!" + ANSI_RESET);
