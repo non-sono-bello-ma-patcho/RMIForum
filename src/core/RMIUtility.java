@@ -30,7 +30,7 @@ public class RMIUtility {
 
     public void serverSetUp(Remote obj, String Localhost) throws UnknownHostException {
         System.setProperty("java.rmi.server.hostname", Localhost);
-        System.setProperty("java.security.policy", "/tmp/RMIServer.policy");
+        System.setProperty("java.security.policy", "/home/shinon/IdeaProjects/RMIForum/src/Server/RMIServer.policy"); /*rimetti /tmp/RMIServer.policy */
         if (System.getSecurityManager()==null) System.setSecurityManager(new SecurityManager());
         // RMIServer obj = new RMIServer();
         try {
@@ -38,8 +38,8 @@ public class RMIUtility {
             ExportNBind(ServerRegistry, obj, Salias,serverPort);
 
             InetAddress ia = InetAddress.getLocalHost();
-            System.err.println("Server up and running on:"+ia.getHostAddress()+", type something to shutdown..."); /* non va bene per il client*/
-
+            if(obj instanceof RMIServer )
+                System.err.println("Server up and running on:"+ia.getHostAddress()+", type something to shutdown..."); /* non va bene per il client*/
         } catch (RemoteException e) {
             System.err.println("Couldn't set registry, maybe you want to check stack trace?[S/n]");
             showStackTrace(e);
