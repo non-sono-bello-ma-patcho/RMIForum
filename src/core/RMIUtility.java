@@ -11,6 +11,7 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.security.AccessControlException;
 import java.util.Scanner;
 
 public class RMIUtility {
@@ -40,6 +41,10 @@ public class RMIUtility {
             InetAddress ia = InetAddress.getLocalHost();
             System.err.println("Server up and running on:"+ia.getHostAddress()+", type something to shutdown...");
 
+        } catch (AccessControlException e) {
+            System.err.println("You must set policy in order to set registry!");
+            showStackTrace(e);
+            System.exit(1);
         } catch (RemoteException e) {
             System.err.println("Couldn't set registry, maybe you want to check stack trace?[S/n]");
             showStackTrace(e);
