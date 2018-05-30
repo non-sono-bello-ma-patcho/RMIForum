@@ -38,10 +38,7 @@ public class RMIUtility {
             ServerRegistry=setRegistry(serverPort);
             ExportNBind(ServerRegistry, obj, Salias,serverPort);
 
-            InetAddress ia = InetAddress.getLocalHost();
-            if(obj instanceof RMIServer )
-                System.err.println("Server up and running on:"+ia.getHostAddress()+", type something to shutdown..."); /* non va bene per il client*/
-            System.err.println("Server up and running on:"+ia.getHostAddress()+", type something to shutdown...");
+            System.err.println((obj instanceof RMIServer?"Server up and running on:"+Localhost:"Registry correctly set")+", type something to shutdown..."); /* non va bene per il client*/
 
         } catch (AccessControlException e) {
             System.err.println("You must set policy in order to set registry!");
@@ -52,9 +49,6 @@ public class RMIUtility {
             showStackTrace(e);
         } catch (AlreadyBoundException e) {
             System.err.println("Couldn't export and bind, maybe you want to check stack trace?[S/n]");
-            showStackTrace(e);
-        } catch (UnknownHostException e) {
-            System.err.println("Couldn't get localhost, maybe you want to check stack trace?[S/n]");
             showStackTrace(e);
         }
     }
