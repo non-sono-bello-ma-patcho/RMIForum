@@ -75,8 +75,8 @@ public class RMIUtility {
 
     private void ExportNBind(Registry reg, Remote obj, String alias, int port) throws AlreadyBoundException, RemoteException {
         Remote stub;
-        if(obj instanceof RMIServer) stub = (RMIServerInterface) UnicastRemoteObject.exportObject((Remote) obj, port);
-        else stub = (RMIClient) UnicastRemoteObject.exportObject((Remote) obj, port);
+        if(obj instanceof RMIServer) stub = (RMIServerInterface) UnicastRemoteObject.exportObject(obj, port);
+        else stub = (RMIClient) UnicastRemoteObject.exportObject(obj, port);
         reg.bind(alias, stub);
     }
 
