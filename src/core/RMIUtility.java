@@ -11,6 +11,7 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.security.AccessControlException;
 
 public class RMIUtility {
     private Registry ServerRegistry;
@@ -36,18 +37,19 @@ public class RMIUtility {
             ServerRegistry=setRegistry(serverPort);
             ExportNBind(ServerRegistry, obj, Salias,serverPort);
 
-            InetAddress ia = InetAddress.getLocalHost();
             System.err.println("Server up and running on:"+Localhost+", type something to shutdown...");
 
         } catch (RemoteException e) {
             System.err.println("Couldn't set registry, maybe you want to check stack trace?[S/n]");
             showStackTrace(e);
+            System.exit(-1);
         } catch (AlreadyBoundException e) {
             System.err.println("Couldn't export and bind, maybe you want to check stack trace?[S/n]");
             showStackTrace(e);
-        } catch (UnknownHostException e) {
-            System.err.println("Couldn't get localhost, maybe you want to check stack trace?[S/n]");
-            showStackTrace(e);
+            System.exit(-1);
+        } catch (AccessControlException e) {
+            System.err.println("You must set the policy in order to set the registry!");
+            System.exit(-1);
         }
     }
 
@@ -63,7 +65,7 @@ public class RMIUtility {
         return registry.lookup(Calias);
     }
 
-    private Registry setRegistry(int port) throws RemoteException {
+    private Registry setRegistry(int port) throws RemoteException, AccessControlException {
         try {
             return LocateRegistry.createRegistry(port);
         } catch (RemoteException e) {
