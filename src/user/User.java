@@ -42,7 +42,7 @@ public class User implements RMIClient{
 
 
     /*    auxiliary functions   */
-
+    // TODO: turn this function so that i returns the connection state instead exit program...
     public void CheckConnection(){
         if(!connected){
             System.err.println("[Client Error Message] : You are not connected, operation failed");
@@ -125,10 +125,10 @@ public class User implements RMIClient{
     private boolean AddTopicRequest(String TopicName) throws RemoteException {
         System.out.println(ANSI_BLUE+"[Client Message] : Trying to add the topic : "+TopicName+"..."+ANSI_RESET);
         CheckConnection();
-        return ServerConnected.addTopic(TopicName, username);
+        return ServerConnected.ManageAddTopic(TopicName, username);
     }
 
-    private boolean MessageRequest(MessageClass msg,String TopicName) throws RemoteException {
+    private boolean PublishRequest(MessageClass msg, String TopicName) throws RemoteException {
         System.out.println(ANSI_BLUE+"[Client Message] : Trying to send the message on : "+TopicName+"..."+ANSI_RESET);
         CheckConnection();
         ServerConnected.ManagePublish(msg,TopicName);
@@ -198,10 +198,10 @@ public class User implements RMIClient{
         if (!myUser.SubscribeRequest("Gloryhole", "subscribe"))
             System.err.println("[Client Error Message] : Something gone wrong,retry to subscribe on Gloryhole topic");
         else {
-            if (!myUser.MessageRequest(myMessage, "Gloryhole")) {
+            if (!myUser.PublishRequest(myMessage, "Gloryhole")) {
                 System.err.println("[Client Error Message] :Something gone wrong, message not sent to Gloryhole");
             }
-            if (!myUser.MessageRequest(msg, "Gloryhole")) {
+            if (!myUser.PublishRequest(msg, "Gloryhole")) {
                 System.err.println("[Client Error Message] :Something gone wrong, message not sent to Gloryhole");
             }
         }
@@ -210,7 +210,7 @@ public class User implements RMIClient{
         if (!myUser.SubscribeRequest("HelpCenter", "subscribe"))
             System.err.println("[Client Error Message] : Something gone wrong,retry to subscribe on HelpCenter topic");
         else{
-            if (!myUser.MessageRequest(msg2, "HelpCenter")) {
+            if (!myUser.PublishRequest(msg2, "HelpCenter")) {
                 System.err.println("[Client Error Message] :Something gone wrong, message not sent to HelpCenter");
             }
         }

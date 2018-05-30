@@ -105,7 +105,7 @@ public class RMIServer implements core.RMIServerInterface {
     }
 
     @Override
-    public boolean ManagePublish(MessageClass msg, String TopicName) throws RemoteException {
+    public synchronized boolean ManagePublish(MessageClass msg, String TopicName) throws RemoteException {
         if(!Topics.get(TopicName).hasUser(msg.getUser())) return false;
         System.err.println("Publishing |"+msg.getFormatMsg()+"| to ["+TopicName+"]!");
         (Topics.get(TopicName)).addMessage(msg);
@@ -119,7 +119,7 @@ public class RMIServer implements core.RMIServerInterface {
     }
 
     @Override
-    public synchronized boolean addTopic(String TopicName, String TopicOwner) throws RemoteException {
+    public synchronized boolean ManageAddTopic(String TopicName, String TopicOwner) throws RemoteException {
         if(Topics.containsKey(TopicName)) return false;
         System.err.println("Adding ["+TopicName+"] to Topics!");
         Topics.put(TopicName, new TopicClass(TopicName, TopicOwner));
