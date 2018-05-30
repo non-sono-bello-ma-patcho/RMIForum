@@ -21,22 +21,17 @@ public class RMIServer implements core.RMIServerInterface {
     private String myHost;
     private RMIUtility serverHandler;
 
-    public RMIServer(String Host) throws RemoteException, NotBoundException {
+    public RMIServer(String Host) {
         Topics = new HashMap<>();
         ClientList = new HashMap<>();
         Credential = new HashMap<>();
         pool = new PoolClass();
         serverHandler = new RMIUtility(ServerRegistry, serverPort, clientPort, "RMISharedServer", "RMISharedClient");
         myHost = Host;
-        // here start the server...
-        try {
-            serverHandler.serverSetUp(this, Host);
-        } catch (UnknownHostException e) {
-            System.err.println("Couldn't setup server...");
-        }
-        Scanner sc = new Scanner(System.in);
-        System.err.println("You typed: "+sc.next());
-        shutDown();
+    }
+
+    public void start(){
+        serverHandler.serverSetUp(this, myHost);
     }
 
     public void shutDown() throws RemoteException, NotBoundException {
@@ -148,9 +143,14 @@ public class RMIServer implements core.RMIServerInterface {
     }
 
     public static void main(String [] args) throws InterruptedException {
-        RMIServer rs = null;
+        RMIServer rs = new RMIServer(args[0]);
+        rs.start();
+        // here start the server...
+        System.out.println("Type something to shutdown...");
+        Scanner sc = new Scanner(System.in);
+        System.err.println("You typed: "+sc.next());
         try {
-            rs = new RMIServer(args[0]);
+            rs.shutDown();
         } catch (RemoteException e) {
             e.printStackTrace();
         } catch (NotBoundException e) {

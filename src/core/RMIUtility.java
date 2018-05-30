@@ -38,7 +38,7 @@ public class RMIUtility {
             ServerRegistry=setRegistry(serverPort);
             ExportNBind(ServerRegistry, obj, Salias,serverPort);
 
-            System.err.println((obj instanceof RMIServer?"Server up and running on:"+Localhost:"Registry correctly set")+", type something to shutdown..."); /* non va bene per il client*/
+            System.err.println((obj instanceof RMIServer?"Server up and running on:"+Localhost:"Registry correctly set")); /* non va bene per il client*/
 
         } catch (AccessControlException e) {
             System.err.println("You must set policy in order to set registry!");
@@ -75,8 +75,8 @@ public class RMIUtility {
 
     private void ExportNBind(Registry reg, Remote obj, String alias, int port) throws AlreadyBoundException, RemoteException {
         Remote stub;
-        if(obj instanceof RMIServer) stub = (RMIServerInterface) UnicastRemoteObject.exportObject(obj, port);
-        else stub = (RMIClient) UnicastRemoteObject.exportObject(obj, port);
+        if(obj instanceof RMIServer) stub = /*(RMIServerInterface)*/ UnicastRemoteObject.exportObject(obj, port);
+        else stub = /*(RMIClient)*/ UnicastRemoteObject.exportObject(obj, port);
         reg.bind(alias, stub);
     }
 
