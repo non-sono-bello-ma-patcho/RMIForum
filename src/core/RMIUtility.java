@@ -39,6 +39,8 @@ public class RMIUtility {
             ExportNBind(ServerRegistry, obj, Salias,serverPort);
 
             InetAddress ia = InetAddress.getLocalHost();
+            if(obj instanceof RMIServer )
+                System.err.println("Server up and running on:"+ia.getHostAddress()+", type something to shutdown..."); /* non va bene per il client*/
             System.err.println("Server up and running on:"+ia.getHostAddress()+", type something to shutdown...");
 
         } catch (AccessControlException e) {

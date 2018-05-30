@@ -33,6 +33,8 @@ public class TopicClass implements Serializable {
         return Users;
     }
 
+    public List<MessageClass> getMessagesAsMessage(){return Convo;} /*ho cambiato la mia struttura*/
+
     public boolean hasUser(String user){
         for(String s : ListUsers()){
             if(s.equals(user)) return true;

@@ -2,15 +2,11 @@ package user;
 import core.*;
 
 
-import java.net.InetAddress;
-import java.net.ServerSocket;
 import java.net.UnknownHostException;
-import java.rmi.AlreadyBoundException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
-import java.rmi.server.UnicastRemoteObject;
 import java.util.*;
 
 
@@ -18,24 +14,30 @@ import java.util.*;
 public class User implements RMIClient{
     public Registry pullRegistry; /* Registry used for pulling remote method */
     public Registry pushRegistry; /* Registry used for pushing remote method */
-    public RMIServerInterface ServerConnected; /* that is the stub */
+    public RMIServerInterface ServerConnected;
     public core.RMIClient Stub;
-    private String username;
-    private String pswd;
     private boolean connected = false;
     private final int myListeningPort = 1099;
+    private final int serverPort = 1969;
+    private String host;
+    private String username;
+    private String password;
+    private RMIUtility ClientHandler;
     private HashMap<String, TopicClass> ServerTopics;
-    private HashMap<String, Boolean> myTopics;
-    private HashMap<String,List<String>> TopicMessages;
+    private HashMap<String, List<MessageClass>> TopicsMessages;
     public static final String ANSI_GREEN = "\u001B[32m";
+    public static final String ANSI_BLUE = "\u001B[34m";
     public static final String ANSI_RESET = "\u001B[0m";
 
-    public User(String nick, String password){
-        username = nick;
-        pswd = password;
+
+    /*     constructor    */
+
+    public User(String myHost) throws UnknownHostException {
+        host = myHost;
+        ClientHandler = new RMIUtility(pushRegistry,myListeningPort,serverPort,"RMISharedClient","RMISharedServer");
         ServerTopics = new HashMap<>();
-        myTopics = new HashMap<>();
-        TopicMessages = new HashMap<>();
+        TopicsMessages = new HashMap<>();
+        ClientHandler.serverSetUp(this, host);
     }
 
 
@@ -43,276 +45,180 @@ public class User implements RMIClient{
 
     public void CheckConnection(){
         if(!connected){
-            System.err.println("You are not connected, operation failed");
+            System.err.println("[Client Error Message] : You are not connected, operation failed");
             System.exit(-1);
         }
     }
 
-    private void ChargeData(){
+    private void ChargeData() throws RemoteException{
         CheckConnection();
-        System.out.println("Trying to charging data from the server.....");
-        try {
-            ServerTopics = ServerConnected.getTopics(); /*inizializzo la hashmap ServerTopics */
-        } catch (RemoteException e) {
-            e.printStackTrace();
+        System.out.println(ANSI_BLUE+ "[Client Message] : Trying to fetching data from the server....."+ANSI_RESET);
+        ServerTopics = ServerConnected.getTopics();
+        for(String k : ServerTopics.keySet()) {
+            if (TopicsMessages.containsKey(k)) TopicsMessages.replace(k, ServerTopics.get(k).getMessagesAsMessage());
+            else TopicsMessages.put(k, ServerTopics.get(k).getMessagesAsMessage());
         }
-        Set<String> mySetofKey = ServerTopics.keySet(); /* mi è utile per usare l'iterator */
-        Iterator<String> myIterator = mySetofKey.iterator();
-        while(myIterator.hasNext()){
-            String TopicName = myIterator.next();
-            System.err.println("topic name : "+ TopicName);
-
-            myTopics.put(TopicName,false); /* inizializzo la hashmap contenete i miei topics (di default sono tutti false a connection time ) */
-            TopicMessages.put(TopicName,ServerTopics.get(TopicName).ListMessages()); /* inizializzo la mia hashmap contenente ogni topic coi relativi mex */
-            /*myIterator.next();*/
-        }
-        System.out.println("DONE");
-
-
+        System.out.println(ANSI_BLUE+"[Client Message] : Done."+ANSI_RESET);
     }
 
-    /*method that try to connect/disconnect to the rmi server */
-    private  boolean ConnectionRequest(String host, String op) throws AlreadyBoundException,RemoteException {
+  /*              Principal functions           */
+
+    private  boolean ConnectionRequest(String Serverhost,String user,String psw, String op) throws  RemoteException {
         switch(op){
             case "connect":
                 if (connected){
-                    System.err.println("You are already connected");
+                    System.err.println("[Client Error Message] : You are already connected");
                     return false;
                 }
-                System.out.println("Trying to connect to the server " + host + " ...");
-
+                System.out.println(ANSI_BLUE+"[Client Message] : Trying to connect to the server " + Serverhost + " ..."+ANSI_RESET);
+                username = user;
+                password = psw;
                 try {
-                    pullRegistry = LocateRegistry.getRegistry("localhost", 8000);
+                    pullRegistry = LocateRegistry.getRegistry(Serverhost, serverPort);
                     ServerConnected = (RMIServerInterface) pullRegistry.lookup("RMISharedServer");
-                    /*InetAddress ia = InetAddress.getLocalHost();*/
-                    pushRegistry = setRegistry(myListeningPort);
-                    ExportNBind(pushRegistry,this,"RMISharedClient",myListeningPort);
-                    boolean result = ServerConnected.ManageConnection(username,pswd,"localhost",op);
-                    if(result) {
-                        connected = true;
-                        System.out.println("DONE");
-                        ChargeData(); /*initialize the hashmaps */
+                    connected = ServerConnected.ManageConnection(user, psw, this.host, op);
+                    if (connected) {
+                        System.out.println(ANSI_BLUE+"[Client Message] : Done."+ANSI_RESET);
+                        ChargeData();
                     }
-                    return result;
-                } catch (RemoteException e) {
-                    e.printStackTrace();
-                } catch (NotBoundException e) {
+                    return connected;
+                }catch (NotBoundException e) {
                     e.printStackTrace();
                 }
                 break;
 
             case "disconnect":
-                CheckConnection(); /* if you are not connected how could you think to disconnect??*/
-                try{
-                    InetAddress ia = InetAddress.getLocalHost();
-                    boolean result = ServerConnected.ManageConnection(username,pswd,ia.getHostAddress(),op);
-                    if(result ){
+                System.out.println(ANSI_BLUE+"[Client Message] : Trying to disconnect from the server..."+ANSI_RESET);
+                CheckConnection();
+                try {
+                    if(ServerConnected.ManageConnection(username, password, this.host, op)) {
                         connected = false;
-                        remoteUnbound();
+                        ClientHandler.RMIshutDown(this);
+                        System.out.println(ANSI_BLUE + "[Client Message] : Done." + ANSI_RESET);
+                        return true;
                     }
-                    return result;
-                } catch (UnknownHostException e) {
-                    e.printStackTrace();
-                } catch (RemoteException e) {
+                }catch (NotBoundException e) {
                     e.printStackTrace();
                 }
             default:
-                System.err.println("invalid operation");
-                break;
+                System.err.println("[Client Error Message] : invalid operation");
         }
         return false;
     }
 
-/* that method is for the topic registration..*/
+
     private boolean SubscribeRequest(String TopicName, String op) throws RemoteException {
         CheckConnection();
         switch(op){
             case "subscribe":
-                myTopics.replace(TopicName,true); /* indico nella mia hashmap che mi sono iscritto anche a quel topic */
-                return ServerConnected.ManageSubscribe(TopicName,username,false); /* assuming that the server class will use an hash map <String,Topic> where the string is the label*/
+                System.out.println(ANSI_BLUE+"[Client Message] : Trying to subscribe to : "+TopicName+"..."+ANSI_RESET);
+                return ServerConnected.ManageSubscribe(TopicName,username,false);
             case "unsubscribe":
-                myTopics.replace(TopicName,false); /* indico nella mia hashmap che mi sono disiscritto anche a quel topic */
-                return ServerConnected.ManageSubscribe(TopicName,username,true); /* assuming that the server class will use an hash map <String,Topic> where the string is the label*/
+                System.out.println(ANSI_BLUE+"[Client Message] : Trying to unsubscribe to : "+TopicName+"..."+ANSI_RESET);
+                return ServerConnected.ManageSubscribe(TopicName,username,true);
             default:
-                System.err.println("invalid operation");
+                System.err.println("[Client Error Message] : invalid operation");
         }
-        return false; /*something gone wrong, probably wrong operation*/
-        /*if the topic doesn't exist, maybe the server could create it and subscribe that user and than return (?)*/
+        return false;
     }
 
     private boolean AddTopicRequest(String TopicName) throws RemoteException {
+        System.out.println(ANSI_BLUE+"[Client Message] : Trying to add the topic : "+TopicName+"..."+ANSI_RESET);
         CheckConnection();
         return ServerConnected.addTopic(TopicName, username);
     }
 
-    private boolean MessageRequest(MessageClass msg,String topicName) throws RemoteException {
+    private boolean MessageRequest(MessageClass msg,String TopicName) throws RemoteException {
+        System.out.println(ANSI_BLUE+"[Client Message] : Trying to send the message on : "+TopicName+"..."+ANSI_RESET);
         CheckConnection();
-        ServerConnected.ManagePublish(msg,topicName);
+        ServerConnected.ManagePublish(msg,TopicName);
         return true;
     }
 
     @Override
-    public synchronized void CLiNotify(String TopicLabel, String TriggeredBy, boolean type) throws RemoteException {
-       /* CheckConnection();*/
-       /*System.out.println("Messagio del server!!!!!!!! la notify funge");*/
-
-
-        /**************************************HO CAMBIATO I CAMPI DELLA CLINOTIFY, PERDONAMI******************************************
-         * la clinotify assomiglierebbe a questo, molto più veloce, meno controlli:
-        if(!connected){
-            System.err.println("Permission denied! The client isn't connected");
-            return;
-        }
-        // notifier.add(TopicLabel); // I need this for the gui...
+    public  void CLiNotify(String TopicLabel, String TriggeredBy, boolean type) throws RemoteException {
+        CheckConnection();
+        // notifier.add(TopicLabel);
         if(type){
             if(!username.equals(TriggeredBy))
-                System.out.println("Hai un nuovo messaggio da "+TriggeredBy+" su "+TopicLabel);
+                System.out.println(ANSI_GREEN+"[Server Message] : You have a new message from "+TriggeredBy+" on "+TopicLabel + ANSI_RESET);
             else
-                System.out.println("Hai inviato un nuovo messaggio su "+TopicLabel);
+                System.out.println(ANSI_GREEN+"[Server Message] : You have sent a new message on "+TopicLabel+ ANSI_RESET);
         }
         else{
             if(!username.equals(TriggeredBy))
-                System.out.println(TriggeredBy+" ha creato il topic "+TopicLabel);
+                System.out.println(ANSI_GREEN+"[Server Message] : "+TriggeredBy+" has created a new topic :  "+TopicLabel+ ANSI_RESET);
             else
-                System.out.println("Hai creato il topic "+TopicLabel);
+                System.out.println(ANSI_GREEN+"[Server Message] : You have created a new topic : "+TopicLabel+ ANSI_RESET);
         }
-        System.err.println("Fetching data...");
         ChargeData();
-        System.err.println("Fetched...");
-        ******************************************************************************************************************************/
-        ServerTopics = ServerConnected.getTopics();
-        if(ServerTopics.size() == 0){
-            System.out.println(ANSI_GREEN+"[Server message] : Welcome to Flaminforum!" + ANSI_RESET);
-            return;
-        }
-
-        Set<String> setTopic = ServerTopics.keySet();
-        Iterator<String> myIterator = setTopic.iterator();
-        while(myIterator.hasNext()){
-            /*System.err.println(myIteratory);*/
-
-            String TopicName = myIterator.next();
-
-            if(!myTopics.containsKey(TopicName)) {
-                System.out.println(ANSI_GREEN+"[Server Message] : Flamingorum has recently added the topic : " + TopicName + ANSI_RESET);
-                myTopics.put(TopicName, false);
-                TopicMessages.put(TopicName,ServerTopics.get(TopicName).ListMessages());
-            }
-            else if(myTopics.get(TopicName)){
-                if(ServerTopics.get(TopicName).ListMessages().size() > TopicMessages.get(TopicName).size()) {
-                    TopicMessages.replace(TopicName, ServerTopics.get(TopicName).ListMessages());
-                    System.out.println(ANSI_GREEN+"[Server Message] : There are new messages on " + TopicName + " topic" + ANSI_RESET);
-                }
-            }
-
-           /* myIterator.next();*/
-        }
-
     }
 
-    private void remoteUnbound(){
-        try {
-            UnicastRemoteObject.unexportObject(this,true);
-            pushRegistry.unbind("RMISharedClient");
 
-        } catch (RemoteException e) {
-            e.printStackTrace();
-        } catch (NotBoundException e) {
-            e.printStackTrace();
-        }
-    }
-
+    /*          getters          */
 
     public String GetUsername(){
         return this.username;
     }
 
     public String GetPassword(){
-        return this.pswd;
+        return this.password;
     }
 
     public boolean GetConnectonStatus(){
         return this.connected;
     }
 
-
-    private Registry setRegistry(int port) throws RemoteException {
-        try {
-            return LocateRegistry.createRegistry(port);
-        } catch (RemoteException e) {
-            return LocateRegistry.getRegistry(port);
+    /*      Debugging function     */
+    private void PrintMap(){
+        for(String k :  ServerTopics.keySet()){
+            System.out.println("[Debugging] : Topic = "+"["+k+"]");
+            for(MessageClass m : TopicsMessages.get(k))
+            System.out.println("                          "+"["+m.getUser()+"] : "+m.getText());
         }
     }
 
-    private void ExportNBind(Registry reg, User obj, String alias, int port) throws AlreadyBoundException, RemoteException {
-        RMIClient stub = (RMIClient) UnicastRemoteObject.exportObject(obj, port);
-        reg.bind(alias, stub);
-    }
+    public static void main(String[] args) throws UnknownHostException,RemoteException{
+        /*debug messages */
+        MessageClass myMessage = new MessageClass("Mortino", "Sarebbe bello vedere i piedi di Re Julien da quel buchino!");
+        MessageClass msg = new MessageClass("Mortino","Qualcuno mi risponde???");
+        MessageClass msg2 = new MessageClass("Mortino","Sapete come si crea un \"Topic\"???");
+        /* end messages */
 
+        User myUser = new User("localhost");
+        if (!myUser.ConnectionRequest(args[0],"Mortino","12345", "connect")) {
+            System.err.println("[Client Error Message] : Mortino,Something gone wrong,retry to connect");
+            System.exit(-1);
+        }
+        if (!myUser.AddTopicRequest("Gloryhole"))
+            System.err.println("[Client Error Message] :The topic Gloryhole already exist");
+        if (!myUser.AddTopicRequest("HelpCenter"))
+            System.err.println("[Client Error Message] :The topic HelpCenter already exist");
 
-/*that main is only a debugging, satiric version */
-    public static void main(String[] args) {
-
-
-
-        System.setProperty("java.security.policy", "/home/shinon/IdeaProjects/RMIForum/src/user/RMIClient.policy");
-        if(System.getSecurityManager()== null) System.setSecurityManager(new SecurityManager());
-
-        try {
-            System.out.println("Trying to set policy for the hostname " + java.net.InetAddress.getLocalHost().getHostAddress());
-            System.setProperty("java.rmi.server.hostname", InetAddress.getLocalHost().getHostAddress());
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
+        if (!myUser.SubscribeRequest("Gloryhole", "subscribe"))
+            System.err.println("[Client Error Message] : Something gone wrong,retry to subscribe on Gloryhole topic");
+        else {
+            if (!myUser.MessageRequest(myMessage, "Gloryhole")) {
+                System.err.println("[Client Error Message] :Something gone wrong, message not sent to Gloryhole");
+            }
+            if (!myUser.MessageRequest(msg, "Gloryhole")) {
+                System.err.println("[Client Error Message] :Something gone wrong, message not sent to Gloryhole");
+            }
+        }
+        if (!myUser.SubscribeRequest("Gloryhole", "unsubscribe"))
+            System.err.println("[Client Error Message] : Something gone wrong,retry to unsubscribe on Gloryhole topic");
+        if (!myUser.SubscribeRequest("HelpCenter", "subscribe"))
+            System.err.println("[Client Error Message] : Something gone wrong,retry to subscribe on HelpCenter topic");
+        else{
+            if (!myUser.MessageRequest(msg2, "HelpCenter")) {
+                System.err.println("[Client Error Message] :Something gone wrong, message not sent to HelpCenter");
+            }
         }
 
-        User myUser = new User("Mortino", "111");
-        User NonnaPapera = new User ("Nonna Papera","scoiattolo22");
-        try {
-            if (!myUser.ConnectionRequest(args[0], "connect")) {
-                System.err.println("Mortino,Something gone wrong,retry to connect");
-                System.exit(-1);
-            }
-            if (myUser.AddTopicRequest("Gloryhole"))
-                System.out.println("adding the Topic Gloeyhole");
-            else System.out.println("The topic Gloryhole already exist");
-            if (!myUser.SubscribeRequest("Gloryhole", "subscribe"))
-                System.err.println("Something gone wrong,retry to subscribe on Gloryhole topic");
-            else {
-                MessageClass myMessage = new MessageClass("Mortino", "Sarebbe bello vedere i piedi di Re Julien da quel buchino!");
-                if (!myUser.MessageRequest(myMessage, "Gloryhole")) {
-                    System.err.println("Something gone wrong, message not sent to Gloryhole");
-
-                }
-                else System.out.println("message sent");
-            }
-
-            if (!myUser.ConnectionRequest(args[0], "disconnect")) {
-                System.err.println("Mortino ,Something gone wrong,cannot disconnect from the server");
-                System.exit(-1); /* that means that the server returned false*/
-            }
-            /*nonna papera test section*/
-            /*
-            if (NonnaPapera.ConnectionRequest(args[0], "connect") == false) {
-                System.err.println("NonnaPapera,Something gone wrong,retry to connect");
-                System.exit(-1);
-            }
-            if (NonnaPapera.AddTopicRequest("Gloryhole"))
-                System.out.println("adding the Topic Gloryhole");
-            else System.out.println("The Topic Gloryhole already exist");
-            if (!myUser.SubscribeRequest("Gloryhole", "subscribe"))
-            System.err.println(NonnaPapera.username + " Something gone wrong,retry to subscribe on Gloryhole topic");
-            else{
-                MessageClass myMessage = new MessageClass("NonnaPapera", "Gasp!!! cercando nella cronologia di Paperino Paperotto sono finita qui.");
-                if (!myUser.MessageRequest(myMessage, "Gloryhole")) {
-                    System.err.println(NonnaPapera.username+ " Something gone wrong, message not sent to Gloryhole");
-
-                } else System.out.println("message sent");
-            }
-*/
-        }catch (RemoteException e) {
-            e.printStackTrace();
-        } catch (AlreadyBoundException e) {
-            e.printStackTrace();
+        myUser.PrintMap();
+        if (!myUser.ConnectionRequest(args[0],myUser.username,myUser.password, "disconnect")) {
+            System.err.println("[Client Error Message] : Mortino ,Something gone wrong,cannot disconnect from the server");
+            System.exit(-1);
         }
     }
 }
