@@ -29,7 +29,7 @@ public class RMIUtility {
         Calias = ca;
     }
 
-    public void serverSetUp(Remote obj, String Localhost) throws UnknownHostException {
+    public void serverSetUp(Remote obj, String Localhost) {
         System.setProperty("java.rmi.server.hostname", Localhost);
         System.setProperty("java.security.policy", "/tmp/RMIServer.policy");
         if (System.getSecurityManager()==null) System.setSecurityManager(new SecurityManager());
