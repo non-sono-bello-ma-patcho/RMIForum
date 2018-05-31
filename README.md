@@ -3,25 +3,27 @@ Simple Java based Forum
 
 This is a Work in progress, stay tuned
 ## RMIServer API
+### Exportable methods:
 ```java
-// Exportable Methods:
 boolean ManageConnection(String username, String pw, String adress, String op);
 boolean ManageAddTopic(String TopicLabel, String TopicOwner);
 boolean ManageSubscribe(String TopicLabel, String User, boolean unsubscribe);
 boolean ManagePublish(MessageClass msg, String TopicLabel);
-
-// Local Methods:
+```
+### Local methods:
+```java
 void Notify(String TopicLabel, String TriggeredBy, boolean type);
 void start();
 void shutDown();
 void printInfo();
 ```
 ## RMIClient API
+### Exportable methods:
 ```java
-// Exportable Methods:
 void CliNotify(String TopicLabel, String TriggeredBy, boolean type);
-
-// Local Methods:
+```
+### Local methods:
+```java
 boolean ConnectionRequest(String SererverHost, String User, String pw, String op);
 boolean AddTopicRequest(String TopicLabel);
 boolean SubscribeRequest(String TopicLabel, String op);
