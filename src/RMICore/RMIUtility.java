@@ -21,8 +21,7 @@ public class RMIUtility {
     private String Salias;
     private  String Calias;
 
-    public RMIUtility(Registry reg, int sp, int cp, String sa, String ca){
-        ServerRegistry = reg;
+    public RMIUtility(int sp, int cp, String sa, String ca){
         clientPort = cp;
         serverPort = sp;
         Salias = sa;
@@ -74,9 +73,7 @@ public class RMIUtility {
     }
 
     private void ExportNBind(Registry reg, Remote obj, String alias, int port) throws AlreadyBoundException, RemoteException {
-        Remote stub;
-        if(obj instanceof RMIServer) stub = /*(RMIServerInterface)*/ UnicastRemoteObject.exportObject(obj, port);
-        else stub = /*(RMIClient)*/ UnicastRemoteObject.exportObject(obj, port);
+        Remote stub =  UnicastRemoteObject.exportObject(obj, port);
         reg.bind(alias, stub);
     }
 
