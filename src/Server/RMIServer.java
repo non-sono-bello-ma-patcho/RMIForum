@@ -1,21 +1,18 @@
 package Server;
 
-import core.*;
+import RMICore.*;
 
-import java.net.UnknownHostException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
-import java.rmi.registry.Registry;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Scanner;
 
-public class RMIServer implements core.RMIServerInterface {
+public class RMIServer implements RMICore.RMIServerInterface {
     private HashMap<String, TopicClass> Topics;
     private HashMap<String, RMIClient> ClientList;
     private HashMap<String, String> Credential;
     private PoolClass pool;
-    private Registry ServerRegistry;
     private final int serverPort = 1969;
     private final int clientPort = 1099;
     private String myHost;
@@ -26,7 +23,7 @@ public class RMIServer implements core.RMIServerInterface {
         ClientList = new HashMap<>();
         Credential = new HashMap<>();
         pool = new PoolClass();
-        serverHandler = new RMIUtility(ServerRegistry, serverPort, clientPort, "RMISharedServer", "RMISharedClient");
+        serverHandler = new RMIUtility(serverPort, clientPort, "RMISharedServer", "RMISharedClient");
         myHost = Host;
     }
 

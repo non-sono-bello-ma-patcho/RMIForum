@@ -1,5 +1,5 @@
 package user;
-import core.*;
+import RMICore.*;
 
 
 import java.net.UnknownHostException;
@@ -13,9 +13,9 @@ import java.util.*;
 
 public class User implements RMIClient{
     public Registry pullRegistry; /* Registry used for pulling remote method */
-    public Registry pushRegistry; /* Registry used for pushing remote method */
+  //  public Registry pushRegistry; /* Registry used for pushing remote method */ INTERNO NELLA CLASSE RMIUtility, non viene mai chiamato...
     public RMIServerInterface ServerConnected;
-    public core.RMIClient Stub;
+    public RMICore.RMIClient Stub;
     private boolean connected = false;
     private final int myListeningPort = 1099;
     private final int serverPort = 1969;
@@ -34,7 +34,7 @@ public class User implements RMIClient{
 
     public User(String myHost) throws UnknownHostException {
         host = myHost;
-        ClientHandler = new RMIUtility(pushRegistry,myListeningPort,serverPort,"RMISharedClient","RMISharedServer");
+        ClientHandler = new RMIUtility(myListeningPort,serverPort,"RMISharedClient","RMISharedServer");
         ServerTopics = new HashMap<>();
         TopicsMessages = new HashMap<>();
         ClientHandler.serverSetUp(this, host);

@@ -1,0 +1,3 @@
+[submodule "src/RMICore"]
+	path = src/RMICore
+	url = https://github.com/non-sono-bello-ma-patcho/RMICore
