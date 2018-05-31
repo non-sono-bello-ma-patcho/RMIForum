@@ -1,7 +1,7 @@
 package user;
+
+
 import RMICore.*;
-
-
 import java.net.UnknownHostException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
