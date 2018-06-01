@@ -17,6 +17,9 @@ public class RMIServer implements RMICore.RMIServerInterface {
     private final int clientPort = 1099;
     private String myHost;
     private RMIUtility serverHandler;
+    public static final String ANSI_GREEN = "\u001B[32m";
+    public static final String ANSI_BLUE = "\u001B[34m";
+    public static final String ANSI_RESET = "\u001B[0m";
 
     public RMIServer(String Host) {
         Topics = new HashMap<>();
@@ -71,29 +74,25 @@ public class RMIServer implements RMICore.RMIServerInterface {
 
     @Override
     public synchronized boolean ManageSubscribe(String TopicLabel, String User, boolean unsubscribe) throws RemoteException {
-        System.err.print("["+User+"] wants to subscribe to ["+TopicLabel+"] Topic:");
+        printDebug("["+User+"] wants to "+(unsubscribe?"subscribe to ":"unsubscribe from ")+" ["+TopicLabel+"]: ");
         if(!Topics.containsKey(TopicLabel)){
-            System.err.println("No such topic...");
+            printDebug("No such topic...");
             return false;
         }
-        System.err.println("DONE");
         if(!unsubscribe) return (Topics.get(TopicLabel)).addUser(User);
         else return Topics.get(TopicLabel).RemoveUser(User);
     }
 
     public void Notify(String TopicLabel, String TriggeredBy, boolean type) throws RemoteException {
-        // call remotely users methods for all client registered...0
-        // submit callable for each client....
-        System.err.println("Send notify to all clients:");
         for(String s : ClientList.keySet()){
             if(Topics.get(TopicLabel).hasUser(s) || !type) { // notify only if a topic has been added or the user is subscribed...
-                System.err.print("Notifying [" + s + "]:");
+                printDebug("Notifying [" + s + "]:");
                 try {
                     ClientList.get(s).CLiNotify(TopicLabel, TriggeredBy, type);
                 } catch (RemoteException e) {
-                    System.err.print("Impossible to invoke CliNotify from "+s+": removing it from clients:");
+                    printDebug("Impossible to invoke CliNotify from "+s+": removing it from clients:");
                     ManageConnection(s, null, null, "disconnect");
-                    System.err.println("DONE");
+                    printDebug("DONE");
                 }
                 System.err.println("DONE");
             }
@@ -103,7 +102,7 @@ public class RMIServer implements RMICore.RMIServerInterface {
     @Override
     public synchronized boolean ManagePublish(MessageClass msg, String TopicName) throws RemoteException {
         if(!Topics.get(TopicName).hasUser(msg.getUser())) return false;
-        System.err.println("Publishing |"+msg.getFormatMsg()+"| to ["+TopicName+"]!");
+        printDebug("Publishing |"+msg.getFormatMsg()+"| to ["+TopicName+"]!");
         (Topics.get(TopicName)).addMessage(msg);
         Notify(TopicName, msg.getUser(), true); // update local users convos...
         return true;
@@ -153,5 +152,9 @@ public class RMIServer implements RMICore.RMIServerInterface {
             e.printStackTrace();
         }
         printInfo(rs);
+    }
+
+    private void printDebug(String text){
+        System.err.println(ANSI_BLUE+"[Debug]: "+text+ANSI_RESET);
     }
 }
