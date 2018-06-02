@@ -2,12 +2,18 @@ package Server;
 
 import RMICore.*;
 
+import java.io.IOException;
 import java.rmi.ConnectException;
 import java.rmi.NotBoundException;
+import java.rmi.Remote;
 import java.rmi.RemoteException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Scanner;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 public class RMIServer implements RMIServerInterface {
     private HashMap<String, TopicClass> Topics;
@@ -16,7 +22,7 @@ public class RMIServer implements RMIServerInterface {
     private PoolClass pool;
     private String myHost;
     private RMIUtility serverHandler;
-    public static final String ANSI_GREEN = "\u001B[32m";
+    private static final String ANSI_GREEN = "\u001B[32m";
     private static final String ANSI_BLUE = "\u001B[34m";
     private static final String ANSI_RESET = "\u001B[0m";
 
@@ -27,15 +33,6 @@ public class RMIServer implements RMIServerInterface {
         pool = new PoolClass();
         serverHandler = new RMIUtility(1969, 1099, "RMISharedServer", "RMISharedClient");
         myHost = Host;
-    }
-
-    public void start(){
-        serverHandler.serverSetUp(this, myHost);
-    }
-
-    public void shutDown() throws RemoteException, NotBoundException {
-        serverHandler.RMIshutDown(this);
-        pool.StopPool();
     }
 
     @Override
@@ -83,20 +80,6 @@ public class RMIServer implements RMIServerInterface {
         else return Topics.get(TopicLabel).RemoveUser(User);
     }
 
-    public void Notify(String TopicLabel, String TriggeredBy, boolean type) throws RemoteException {
-        for(String s : ClientList.keySet()){
-            if(Topics.get(TopicLabel).hasUser(s) || !type) { // notify only if a topic has been added or the user is subscribed...
-                printDebug("Notifying [" + s + "]:");
-                try {
-                    ClientList.get(s).CLiNotify(TopicLabel, TriggeredBy, type);
-                } catch (RemoteException e) {
-                    printDebug("Impossible to invoke CliNotify from "+s+": removing it from clients:");
-                    ManageConnection(s, null, null, "disconnect");
-                }
-            }
-        }
-    }
-
     @Override
     public boolean ManagePublish(MessageClass msg, String TopicName) throws RemoteException {
         if(!Topics.get(TopicName).hasUser(msg.getUser())) return false;
@@ -135,6 +118,39 @@ public class RMIServer implements RMIServerInterface {
         }
     }
 
+    public void Notify(String TopicLabel, String TriggeredBy, boolean type) throws RemoteException {
+        List<Future<String>> response = new ArrayList<>(ClientList.size());
+        for (String s : ClientList.keySet()) {
+            if (Topics.get(TopicLabel).hasUser(s) || !type) { // notify only if a topic has been added or the user is subscribed...
+                printDebug("Notifying [" + s + "]:");
+                response.add(notifyClient(s, ClientList.get(s), TopicLabel, TriggeredBy, type));
+            }
+        }
+        for (Future<String> f : response) {
+            String result = null;
+            try {
+                result = f.get();
+            } catch (InterruptedException e) {
+                e.printStackTrace(); // TODO: Handle exception
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            }
+            if(!result.equals("Reached")) {
+                printDebug("Impossible to invoke CliNotify from " + result + ": removing it from clients:");
+                ManageConnection(result, null, null, "disconnect");
+            }
+        }
+    }
+
+    public void start(){
+        serverHandler.serverSetUp(this, myHost);
+    }
+
+    public void shutDown() throws RemoteException, NotBoundException {
+        serverHandler.RMIshutDown(this);
+        pool.StopPool();
+    }
+
     public static void main(String [] args) {
         RMIServer rs = new RMIServer(args[0]);
         rs.start();
@@ -144,9 +160,9 @@ public class RMIServer implements RMIServerInterface {
         System.err.println("You typed: "+sc.next());
         try {
             rs.shutDown();
-        } catch (RemoteException e) {
-            e.printStackTrace();
         } catch (NotBoundException e) {
+            e.printStackTrace();
+        } catch (RemoteException e) {
             e.printStackTrace();
         }
         printInfo(rs);
@@ -154,5 +170,31 @@ public class RMIServer implements RMIServerInterface {
 
     private void printDebug(String text){
         System.err.println(ANSI_BLUE+"[Debug]: "+text+ANSI_RESET);
+    }
+
+    class notifyHandler implements Callable {
+        String username, topiclabel, triggeredby;
+        boolean type;
+        RMIClient stub;
+        public notifyHandler(String user, RMIClient userstub, String tl, String tb, boolean t){
+            username = user;
+            stub = userstub;
+            topiclabel = tl;
+            triggeredby = tb;
+            type = t;
+        }
+        @Override
+        public String call() {
+            try {
+                stub.CLiNotify(topiclabel, triggeredby, type);
+            } catch (RemoteException e) {
+                return username;
+            }
+            return "Reached";
+        }
+    }
+
+    Future<String> notifyClient(String user, RMIClient userstub, String tl, String tb, boolean t){
+        return pool.submit(new notifyHandler(user, userstub, tl, tb, t));
     }
 }
