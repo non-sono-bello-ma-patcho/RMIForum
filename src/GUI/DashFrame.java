@@ -11,6 +11,7 @@ import user.User;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.PrintStream;
 import java.net.UnknownHostException;
 import java.rmi.RemoteException;
 import java.util.HashMap;
@@ -20,11 +21,10 @@ import java.util.HashMap;
  * @author phibonachos
  */
 public class DashFrame extends javax.swing.JFrame {
-    private boolean Triggered;
     private User myClient;
     String ServerHost;
     JFrame Caller;
-
+/*
     private class PollingThread extends Thread{
         private User toListen;
         public PollingThread(User u){
@@ -41,7 +41,7 @@ public class DashFrame extends javax.swing.JFrame {
         }
 
     }
-
+*/
 
     /**************************************************************************/
     public void updateConvo(){
@@ -196,14 +196,21 @@ public class DashFrame extends javax.swing.JFrame {
      * Creates new form DashFrame
      */
     public DashFrame(User user, String sh, JFrame c) {
+        System.setErr(new PrintStream(System.err){
+            public void println(String s){
+                if(s.equals("Fetched...")) {
+                    updateConvo();
+                    updateTopic();
+                }
+                super.println(s);
+            }
+        });
         initComponents();
         ServerHost = sh;
         myClient = user;
         Caller = c;
         updateTopic();
         SendButton.setEnabled(false);
-        PollingThread pt = new PollingThread(myClient);
-        pt.start();
         // populate convoBox
     }
 

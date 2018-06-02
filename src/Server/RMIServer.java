@@ -125,7 +125,7 @@ public class RMIServer implements core.RMIServerInterface {
     }
 
     @Override
-    public HashMap<String, TopicClass> getTopics() throws RemoteException {
+    public synchronized HashMap<String, TopicClass> getTopics() throws RemoteException {
         return Topics;
     }
 
