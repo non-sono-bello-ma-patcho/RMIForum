@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Scanner;
 
-public class RMIServer implements RMICore.RMIServerInterface {
+public class RMIServer implements RMIServerInterface {
     private HashMap<String, TopicClass> Topics;
     private HashMap<String, RMIClient> ClientList;
     private HashMap<String, String> Credential;
@@ -40,7 +40,7 @@ public class RMIServer implements RMICore.RMIServerInterface {
     }
 
     @Override
-    public synchronized boolean ManageConnection(String username, String password, String address, String op) throws RemoteException {
+    public boolean ManageConnection(String username, String password, String address, String op) throws RemoteException {
         switch (op) {
             case "connect":
                 if (ClientList.containsKey(username)) return false;
@@ -73,7 +73,7 @@ public class RMIServer implements RMICore.RMIServerInterface {
     }
 
     @Override
-    public synchronized boolean ManageSubscribe(String TopicLabel, String User, boolean unsubscribe) throws RemoteException {
+    public boolean ManageSubscribe(String TopicLabel, String User, boolean unsubscribe) throws RemoteException {
         printDebug("["+User+"] wants to "+(unsubscribe?"subscribe to ":"unsubscribe from ")+" ["+TopicLabel+"]: ");
         if(!Topics.containsKey(TopicLabel)){
             printDebug("No such topic...");
@@ -100,7 +100,7 @@ public class RMIServer implements RMICore.RMIServerInterface {
     }
 
     @Override
-    public synchronized boolean ManagePublish(MessageClass msg, String TopicName) throws RemoteException {
+    public boolean ManagePublish(MessageClass msg, String TopicName) throws RemoteException {
         if(!Topics.get(TopicName).hasUser(msg.getUser())) return false;
         printDebug("Publishing |"+msg.getFormatMsg()+"| to ["+TopicName+"]!");
         (Topics.get(TopicName)).addMessage(msg);
@@ -114,7 +114,7 @@ public class RMIServer implements RMICore.RMIServerInterface {
     }
 
     @Override
-    public synchronized boolean ManageAddTopic(String TopicName, String TopicOwner) throws RemoteException {
+    public boolean ManageAddTopic(String TopicName, String TopicOwner) throws RemoteException {
         if(Topics.containsKey(TopicName)) return false;
         System.err.println("Adding ["+TopicName+"] to Topics!");
         Topics.put(TopicName, new TopicClass(TopicName, TopicOwner));
