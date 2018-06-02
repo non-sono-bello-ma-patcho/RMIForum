@@ -2,6 +2,7 @@ package Server;
 
 import RMICore.*;
 
+import java.rmi.ConnectException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.util.HashMap;
@@ -13,20 +14,18 @@ public class RMIServer implements RMIServerInterface {
     private HashMap<String, RMIClient> ClientList;
     private HashMap<String, String> Credential;
     private PoolClass pool;
-    private final int serverPort = 1969;
-    private final int clientPort = 1099;
     private String myHost;
     private RMIUtility serverHandler;
     public static final String ANSI_GREEN = "\u001B[32m";
-    public static final String ANSI_BLUE = "\u001B[34m";
-    public static final String ANSI_RESET = "\u001B[0m";
+    private static final String ANSI_BLUE = "\u001B[34m";
+    private static final String ANSI_RESET = "\u001B[0m";
 
     public RMIServer(String Host) {
         Topics = new HashMap<>();
         ClientList = new HashMap<>();
         Credential = new HashMap<>();
         pool = new PoolClass();
-        serverHandler = new RMIUtility(serverPort, clientPort, "RMISharedServer", "RMISharedClient");
+        serverHandler = new RMIUtility(1969, 1099, "RMISharedServer", "RMISharedClient");
         myHost = Host;
     }
 
@@ -51,9 +50,11 @@ public class RMIServer implements RMIServerInterface {
                     RMIClient stub = (RMIClient) serverHandler.getRemoteMethod(address);
                     System.err.println("DONE");
                     ClientList.putIfAbsent(username, stub);
-                } catch (RemoteException e) {
-                    System.err.println("Remote problems pal....");
-                    e.printStackTrace();
+                } catch (ConnectException e) {
+                    System.err.println("Host hasn't set its policy...");
+                    return false;
+                }catch (RemoteException e) {
+                    System.err.println("Impossible to retrieve stub from client...");
                     return false;
                 } catch (NotBoundException e) {
                     System.err.println("Looks like there no shared object on that server...");
@@ -66,7 +67,6 @@ public class RMIServer implements RMIServerInterface {
                 System.err.print("Removing [" + username + "] from Users:");
                 ClientList.remove(username);
                 Credential.remove(username);
-                System.err.println("DONE");
                 break;
         }
         return true;
@@ -92,9 +92,7 @@ public class RMIServer implements RMIServerInterface {
                 } catch (RemoteException e) {
                     printDebug("Impossible to invoke CliNotify from "+s+": removing it from clients:");
                     ManageConnection(s, null, null, "disconnect");
-                    printDebug("DONE");
                 }
-                System.err.println("DONE");
             }
         }
     }
@@ -137,7 +135,7 @@ public class RMIServer implements RMIServerInterface {
         }
     }
 
-    public static void main(String [] args) throws InterruptedException {
+    public static void main(String [] args) {
         RMIServer rs = new RMIServer(args[0]);
         rs.start();
         // here start the server...

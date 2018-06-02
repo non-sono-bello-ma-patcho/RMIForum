@@ -184,7 +184,7 @@ public class User implements RMIClient{
         MessageClass msg = new MessageClass("Mortino","Qualcuno mi risponde???");
         MessageClass msg2 = new MessageClass("Mortino","Sapete come si crea un \"Topic\"???");
         /* end messages */
-
+        // TODO: modify constructor so that the localhost is passed as a parameter (this works only on loopback...)
         User myUser = new User("localhost");
         if (!myUser.ConnectionRequest(args[0],"Mortino","12345", "connect")) {
             System.err.println("[Client Error Message] : Mortino,Something gone wrong,retry to connect");
