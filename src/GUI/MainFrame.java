@@ -9,6 +9,8 @@ import user.User;
 
 import java.net.UnknownHostException;
 
+import static java.lang.System.exit;
+
 /**
  *
  * @author phibonachos
@@ -251,6 +253,10 @@ public class MainFrame extends javax.swing.JFrame {
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
          * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html
          */
+        if(args.length < 1){
+            System.err.println("Usage: MainFrame <host>");
+            exit(1);
+        }
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
