@@ -1,7 +1,5 @@
 # RMIForum
-Simple Java based Forum
-
-This is a Work in progress, stay tuned
+Here you can find a stable version of the core classes of RMIForum project, feel free to clone!
 ## RMIServer API
 ### Exportable methods:
 ```java
