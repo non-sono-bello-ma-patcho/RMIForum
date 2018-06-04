@@ -2,6 +2,9 @@
 Simple Java based Forum
 
 This is a Work in progress, stay tuned
+
+**This is the testing branch! If you need a stable release to import in your project checkout [PackageReady](https://github.com/non-sono-bello-ma-patcho/RMIForum/tree/1c86096bf1f2f65b2131ff7583ff8b8fa02f8e25)'s branch!!**
+
 ## RMIServer API
 ### Exportable methods:
 ```java
