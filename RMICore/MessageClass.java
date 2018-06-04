@@ -1,4 +1,4 @@
-package RMICore;
+package RMIForum.RMICore;
 import java.io.Serializable;
 
 public class MessageClass implements Serializable {

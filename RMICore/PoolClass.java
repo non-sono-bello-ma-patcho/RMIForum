@@ -1,4 +1,4 @@
-package RMICore;
+package RMIForum.RMICore;
 import java.util.concurrent.*;
 
 public class PoolClass {

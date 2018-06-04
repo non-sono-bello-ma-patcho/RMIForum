@@ -1,4 +1,4 @@
-package Server;
+package RMIForum.Server;
 
 import RMICore.*;
 

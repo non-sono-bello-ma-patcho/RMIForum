@@ -1,4 +1,4 @@
-package RMICore;
+package RMIForum.RMICore;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.concurrent.ConcurrentHashMap;
