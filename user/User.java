@@ -1,4 +1,4 @@
-package RMIFourm.user;
+package RMIForum.user;
 
 
 import RMICore.*;
