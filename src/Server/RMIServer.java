@@ -2,23 +2,21 @@ package Server;
 
 import RMICore.*;
 
-import java.io.IOException;
 import java.rmi.ConnectException;
 import java.rmi.NotBoundException;
-import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Scanner;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 public class RMIServer implements RMIServerInterface {
-    private HashMap<String, TopicClass> Topics;
-    private HashMap<String, RMIClient> ClientList;
-    private HashMap<String, String> Credential;
+    private ConcurrentHashMap<String, TopicClass> Topics; // TODO: to wrap into a class;
+    private ConcurrentHashMap<String, RMIClient> ClientList; // TODO: to wrap into a class;
+    private ConcurrentHashMap<String, String> Credential; // TODO: incorporate into clientlist class...
     private PoolClass pool;
     private String myHost;
     private RMIUtility serverHandler;
@@ -27,9 +25,9 @@ public class RMIServer implements RMIServerInterface {
     private static final String ANSI_RESET = "\u001B[0m";
 
     public RMIServer(String Host) {
-        Topics = new HashMap<>();
-        ClientList = new HashMap<>();
-        Credential = new HashMap<>();
+        Topics = new ConcurrentHashMap<>();
+        ClientList = new ConcurrentHashMap<>();
+        Credential = new ConcurrentHashMap<>();
         pool = new PoolClass();
         serverHandler = new RMIUtility(1969, 1099, "RMISharedServer", "RMISharedClient");
         myHost = Host;
@@ -90,7 +88,7 @@ public class RMIServer implements RMIServerInterface {
     }
 
     @Override
-    public HashMap<String, TopicClass> getTopics() throws RemoteException {
+    public ConcurrentHashMap<String, TopicClass> getTopics() throws RemoteException {
         return Topics;
     }
 
@@ -194,7 +192,7 @@ public class RMIServer implements RMIServerInterface {
         }
     }
 
-    Future<String> notifyClient(String user, RMIClient userstub, String tl, String tb, boolean t){
+    private Future notifyClient(String user, RMIClient userstub, String tl, String tb, boolean t){
         return pool.submit(new notifyHandler(user, userstub, tl, tb, t));
     }
 }

@@ -8,7 +8,7 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.*;
-
+import java.util.concurrent.ConcurrentHashMap;
 
 
 public class User implements RMIClient{
@@ -23,7 +23,7 @@ public class User implements RMIClient{
     private String username;
     private String password;
     private RMIUtility ClientHandler;
-    private HashMap<String, TopicClass> ServerTopics;
+    private ConcurrentHashMap<String, TopicClass> ServerTopics;
     private HashMap<String, List<MessageClass>> TopicsMessages;
     public static final String ANSI_GREEN = "\u001B[32m";
     public static final String ANSI_BLUE = "\u001B[34m";
@@ -35,7 +35,7 @@ public class User implements RMIClient{
     public User(String myHost) throws UnknownHostException {
         host = myHost;
         ClientHandler = new RMIUtility(myListeningPort,serverPort,"RMISharedClient","RMISharedServer");
-        ServerTopics = new HashMap<>();
+        ServerTopics = new ConcurrentHashMap<>();
         TopicsMessages = new HashMap<>();
         ClientHandler.serverSetUp(this, host);
     }
