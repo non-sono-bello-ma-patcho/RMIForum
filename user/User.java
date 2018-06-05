@@ -23,7 +23,7 @@ public class User implements RMIClient{
     private String username;
     private String password;
     private RMIUtility ClientHandler;
-    private ConcurrentHashMap<String, TopicClass> ServerTopics;
+    private TopicList ServerTopics;
     private HashMap<String, List<MessageClass>> TopicsMessages;
     public static final String ANSI_GREEN = "\u001B[32m";
     public static final String ANSI_BLUE = "\u001B[34m";
@@ -35,7 +35,7 @@ public class User implements RMIClient{
     public User(String myHost) throws UnknownHostException {
         host = myHost;
         ClientHandler = new RMIUtility(myListeningPort,serverPort,"RMISharedClient","RMISharedServer");
-        ServerTopics = new ConcurrentHashMap<>();
+        ServerTopics = new TopicList();
         TopicsMessages = new HashMap<>();
         ClientHandler.serverSetUp(this, host);
     }
@@ -54,9 +54,9 @@ public class User implements RMIClient{
         CheckConnection();
         System.out.println(ANSI_BLUE+ "[Client Message] : Trying to fetching data from the server....."+ANSI_RESET);
         ServerTopics = ServerConnected.getTopics();
-        for(String k : ServerTopics.keySet()) {
-            if (TopicsMessages.containsKey(k)) TopicsMessages.replace(k, ServerTopics.get(k).getMessagesAsMessage());
-            else TopicsMessages.put(k, ServerTopics.get(k).getMessagesAsMessage());
+        for(String k : ServerTopics.ListTopicName()) {
+            if (TopicsMessages.containsKey(k)) TopicsMessages.replace(k, ServerTopics.getTopicNamed(k).getConversation());
+            else TopicsMessages.put(k, ServerTopics.getTopicNamed(k).getConversation());
         }
         System.out.println(ANSI_BLUE+"[Client Message] : Done."+ANSI_RESET);
     }
@@ -107,7 +107,7 @@ public class User implements RMIClient{
     }
 
 
-    public boolean SubscribeRequest(String TopicName, String op) throws RemoteException {
+    private boolean SubscribeRequest(String TopicName, String op) throws RemoteException {
         CheckConnection();
         switch(op){
             case "subscribe":
@@ -122,13 +122,13 @@ public class User implements RMIClient{
         return false;
     }
 
-    public boolean AddTopicRequest(String TopicName) throws RemoteException {
+    private boolean AddTopicRequest(String TopicName) throws RemoteException {
         System.out.println(ANSI_BLUE+"[Client Message] : Trying to add the topic : "+TopicName+"..."+ANSI_RESET);
         CheckConnection();
         return ServerConnected.ManageAddTopic(TopicName, username);
     }
 
-    public boolean PublishRequest(MessageClass msg, String TopicName) throws RemoteException {
+    private boolean PublishRequest(MessageClass msg, String TopicName) throws RemoteException {
         System.out.println(ANSI_BLUE+"[Client Message] : Trying to send the message on : "+TopicName+"..."+ANSI_RESET);
         CheckConnection();
         ServerConnected.ManagePublish(msg,TopicName);
@@ -169,10 +169,9 @@ public class User implements RMIClient{
         return this.connected;
     }
 
-
     /*      Debugging function     */
     private void PrintMap(){
-        for(String k :  ServerTopics.keySet()){
+        for(String k :  ServerTopics.ListTopicName()){
             System.out.println("[Debugging] : Topic = "+"["+k+"]");
             for(MessageClass m : TopicsMessages.get(k))
             System.out.println("                          "+"["+m.getUser()+"] : "+m.getText());
@@ -186,8 +185,8 @@ public class User implements RMIClient{
         MessageClass msg2 = new MessageClass("Mortino","Sapete come si crea un \"Topic\"???");
         /* end messages */
         // TODO: modify constructor so that the localhost is passed as a parameter (this works only on loopback...)
-        User myUser = new User("localhost");
-        if (!myUser.ConnectionRequest(args[0],"Mortino","12345", "connect")) {
+        User myUser = new User(args[0]);
+        if (!myUser.ConnectionRequest(args[1],"Mortino","12345", "connect")) {
             System.err.println("[Client Error Message] : Mortino,Something gone wrong,retry to connect");
             System.exit(-1);
         }

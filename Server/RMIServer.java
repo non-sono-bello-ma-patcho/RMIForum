@@ -14,7 +14,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 public class RMIServer implements RMIServerInterface {
-    private ConcurrentHashMap<String, TopicClass> Topics; // TODO: to wrap into a class;
+    private TopicList Topics; // TODO: to wrap into a class;
     private ConcurrentHashMap<String, RMIClient> ClientList; // TODO: to wrap into a class;
     private ConcurrentHashMap<String, String> Credential; // TODO: incorporate into clientlist class...
     private PoolClass pool;
@@ -25,7 +25,7 @@ public class RMIServer implements RMIServerInterface {
     private static final String ANSI_RESET = "\u001B[0m";
 
     public RMIServer(String Host) {
-        Topics = new ConcurrentHashMap<>();
+        Topics = new TopicList();
         ClientList = new ConcurrentHashMap<>();
         Credential = new ConcurrentHashMap<>();
         pool = new PoolClass();
@@ -70,48 +70,48 @@ public class RMIServer implements RMIServerInterface {
     @Override
     public boolean ManageSubscribe(String TopicLabel, String User, boolean unsubscribe) throws RemoteException {
         printDebug("["+User+"] wants to "+(unsubscribe?"subscribe to ":"unsubscribe from ")+" ["+TopicLabel+"]: ");
-        if(!Topics.containsKey(TopicLabel)){
+        if(!Topics.contains(TopicLabel)){
             printDebug("No such topic...");
             return false;
         }
-        if(!unsubscribe) return (Topics.get(TopicLabel)).addUser(User);
-        else return Topics.get(TopicLabel).RemoveUser(User);
+        if(!unsubscribe) return (Topics.getTopicNamed(TopicLabel)).addUser(User);
+        else return Topics.getTopicNamed(TopicLabel).RemoveUser(User);
     }
 
     @Override
     public boolean ManagePublish(MessageClass msg, String TopicName) throws RemoteException {
-        if(!Topics.get(TopicName).hasUser(msg.getUser())) return false;
+        if(!Topics.getTopicNamed(TopicName).hasUser(msg.getUser())) return false;
         printDebug("Publishing |"+msg.getFormatMsg()+"| to ["+TopicName+"]!");
-        (Topics.get(TopicName)).addMessage(msg);
+        (Topics.getTopicNamed(TopicName)).addMessage(msg);
         Notify(TopicName, msg.getUser(), true); // update local users convos...
         return true;
     }
 
     @Override
-    public ConcurrentHashMap<String, TopicClass> getTopics() throws RemoteException {
+    public TopicList getTopics() throws RemoteException {
         return Topics;
     }
 
     @Override
     public boolean ManageAddTopic(String TopicName, String TopicOwner) throws RemoteException {
-        if(Topics.containsKey(TopicName)) return false;
+        if(Topics.contains(TopicName)) return false;
         System.err.println("Adding ["+TopicName+"] to Topics!");
-        Topics.put(TopicName, new TopicClass(TopicName, TopicOwner));
+        Topics.put(new TopicClass(TopicName, TopicOwner));
         Notify(TopicName, TopicOwner, false);
         return true;
     }
 
     public static void printInfo(RMIServer rs){ /*should it be right for the client class too?*/
         System.out.println("Available Topics:");
-        for(String t : rs.Topics.keySet()) System.out.println(t);
+        for(String t : rs.Topics.ListTopicName()) System.out.println(t);
 
         System.out.println("Connected users:");
         for(String t : rs.ClientList.keySet()) System.out.println(t);
 
         System.out.println("Topics and messages:");
-        for(String t : rs.Topics.keySet()){
+        for(String t : rs.Topics.ListTopicName()){
             System.out.println("Topic ["+t+"]:");
-            List<String> messages = rs.Topics.get(t).ListMessages();
+            List<String> messages = rs.Topics.getTopicNamed(t).ListMessages();
             for(String m : messages) System.out.println("\t"+m);
         }
     }
@@ -119,7 +119,7 @@ public class RMIServer implements RMIServerInterface {
     public void Notify(String TopicLabel, String TriggeredBy, boolean type) throws RemoteException {
         List<Future<String>> response = new ArrayList<>(ClientList.size());
         for (String s : ClientList.keySet()) {
-            if (Topics.get(TopicLabel).hasUser(s) || !type) { // notify only if a topic has been added or the user is subscribed...
+            if (Topics.getTopicNamed(TopicLabel).hasUser(s) || !type) { // notify only if a topic has been added or the user is subscribed...
                 printDebug("Notifying [" + s + "]:");
                 response.add(notifyClient(s, ClientList.get(s), TopicLabel, TriggeredBy, type));
             }
