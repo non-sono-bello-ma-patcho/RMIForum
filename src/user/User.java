@@ -23,7 +23,7 @@ public class User implements RMIClient{
     private String username;
     private String password;
     private RMIUtility ClientHandler;
-    private ConcurrentHashMap<String, TopicClass> ServerTopics;
+    private TopicList ServerTopics;
     private HashMap<String, List<MessageClass>> TopicsMessages;
     public static final String ANSI_GREEN = "\u001B[32m";
     public static final String ANSI_BLUE = "\u001B[34m";
@@ -35,7 +35,7 @@ public class User implements RMIClient{
     public User(String myHost) throws UnknownHostException {
         host = myHost;
         ClientHandler = new RMIUtility(myListeningPort,serverPort,"RMISharedClient","RMISharedServer");
-        ServerTopics = new ConcurrentHashMap<>();
+        ServerTopics = new TopicList();
         TopicsMessages = new HashMap<>();
         ClientHandler.serverSetUp(this, host);
     }
@@ -54,9 +54,9 @@ public class User implements RMIClient{
         CheckConnection();
         System.out.println(ANSI_BLUE+ "[Client Message] : Trying to fetching data from the server....."+ANSI_RESET);
         ServerTopics = ServerConnected.getTopics();
-        for(String k : ServerTopics.keySet()) {
-            if (TopicsMessages.containsKey(k)) TopicsMessages.replace(k, ServerTopics.get(k).getMessagesAsMessage());
-            else TopicsMessages.put(k, ServerTopics.get(k).getMessagesAsMessage());
+        for(String k : ServerTopics.ListTopicName()) {
+            if (TopicsMessages.containsKey(k)) TopicsMessages.replace(k, ServerTopics.getTopicNamed(k).getMessagesAsMessage());
+            else TopicsMessages.put(k, ServerTopics.getTopicNamed(k).getMessagesAsMessage());
         }
         System.out.println(ANSI_BLUE+"[Client Message] : Done."+ANSI_RESET);
     }
@@ -171,7 +171,7 @@ public class User implements RMIClient{
 
     /*      Debugging function     */
     private void PrintMap(){
-        for(String k :  ServerTopics.keySet()){
+        for(String k :  ServerTopics.ListTopicName()){
             System.out.println("[Debugging] : Topic = "+"["+k+"]");
             for(MessageClass m : TopicsMessages.get(k))
             System.out.println("                          "+"["+m.getUser()+"] : "+m.getText());
