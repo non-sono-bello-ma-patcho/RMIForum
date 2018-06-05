@@ -55,8 +55,8 @@ public class User implements RMIClient{
         System.out.println(ANSI_BLUE+ "[Client Message] : Trying to fetching data from the server....."+ANSI_RESET);
         ServerTopics = ServerConnected.getTopics();
         for(String k : ServerTopics.ListTopicName()) {
-            if (TopicsMessages.containsKey(k)) TopicsMessages.replace(k, ServerTopics.getTopicNamed(k).getMessagesAsMessage());
-            else TopicsMessages.put(k, ServerTopics.getTopicNamed(k).getMessagesAsMessage());
+            if (TopicsMessages.containsKey(k)) TopicsMessages.replace(k, ServerTopics.getTopicNamed(k).getConversation());
+            else TopicsMessages.put(k, ServerTopics.getTopicNamed(k).getConversation());
         }
         System.out.println(ANSI_BLUE+"[Client Message] : Done."+ANSI_RESET);
     }
