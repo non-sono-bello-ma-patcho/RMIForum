@@ -1,7 +1,7 @@
 package RMIForum.user;
 
 
-import RMICore.*;
+import RMIForum.RMICore.*;
 import java.net.UnknownHostException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
@@ -15,7 +15,7 @@ public class User implements RMIClient{
     public Registry pullRegistry; /* Registry used for pulling remote method */
   //  public Registry pushRegistry; /* Registry used for pushing remote method */ INTERNO NELLA CLASSE RMIUtility, non viene mai chiamato...
     public RMIServerInterface ServerConnected;
-    public RMICore.RMIClient Stub;
+    public RMIClient Stub;
     private boolean connected = false;
     private final int myListeningPort = 1099;
     private final int serverPort = 1969;
