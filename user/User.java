@@ -19,7 +19,7 @@ public class User implements RMIClient{
     private boolean connected = false;
     private final int myListeningPort = 1099;
     private final int serverPort = 1969;
-    private String host;
+    private String host, serverHost;
     private String username;
     private String password;
     private RMIUtility ClientHandler;
@@ -81,6 +81,7 @@ public class User implements RMIClient{
                         System.out.println(ANSI_BLUE+"[Client Message] : Done."+ANSI_RESET);
                         ChargeData();
                     }
+                    serverHost = Serverhost;
                     return connected;
                 }catch (NotBoundException e) {
                     e.printStackTrace();
@@ -95,6 +96,7 @@ public class User implements RMIClient{
                         connected = false;
                         ClientHandler.RMIshutDown(this);
                         System.out.println(ANSI_BLUE + "[Client Message] : Done." + ANSI_RESET);
+                        serverHost = null;
                         return true;
                     }
                 }catch (NotBoundException e) {
@@ -171,6 +173,11 @@ public class User implements RMIClient{
 
     public TopicList getServerTopics(){
         return ServerTopics;
+    }
+
+    public String getServerHost(){
+        if(!connected) throw new NoSuchElementException();
+        return serverHost;
     }
 
     /*      Debugging function     */
