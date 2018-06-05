@@ -169,6 +169,10 @@ public class User implements RMIClient{
         return this.connected;
     }
 
+    public TopicList getServerTopics(){
+        return ServerTopics;
+    }
+
     /*      Debugging function     */
     private void PrintMap(){
         for(String k :  ServerTopics.ListTopicName()){
