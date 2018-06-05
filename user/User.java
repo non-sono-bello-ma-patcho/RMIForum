@@ -63,7 +63,7 @@ public class User implements RMIClient{
 
   /*              Principal functions           */
 
-    private  boolean ConnectionRequest(String Serverhost,String user,String psw, String op) throws  RemoteException {
+    public  boolean ConnectionRequest(String Serverhost,String user,String psw, String op) throws  RemoteException {
         switch(op){
             case "connect":
                 if (connected){
@@ -107,7 +107,7 @@ public class User implements RMIClient{
     }
 
 
-    private boolean SubscribeRequest(String TopicName, String op) throws RemoteException {
+    public boolean SubscribeRequest(String TopicName, String op) throws RemoteException {
         CheckConnection();
         switch(op){
             case "subscribe":
@@ -122,13 +122,13 @@ public class User implements RMIClient{
         return false;
     }
 
-    private boolean AddTopicRequest(String TopicName) throws RemoteException {
+    public boolean AddTopicRequest(String TopicName) throws RemoteException {
         System.out.println(ANSI_BLUE+"[Client Message] : Trying to add the topic : "+TopicName+"..."+ANSI_RESET);
         CheckConnection();
         return ServerConnected.ManageAddTopic(TopicName, username);
     }
 
-    private boolean PublishRequest(MessageClass msg, String TopicName) throws RemoteException {
+    public boolean PublishRequest(MessageClass msg, String TopicName) throws RemoteException {
         System.out.println(ANSI_BLUE+"[Client Message] : Trying to send the message on : "+TopicName+"..."+ANSI_RESET);
         CheckConnection();
         ServerConnected.ManagePublish(msg,TopicName);
