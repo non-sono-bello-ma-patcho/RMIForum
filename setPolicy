@@ -1,6 +1,8 @@
+#!/bin/bash
 
 [ -f /tmp/RMIServer.policy ] && sudo rm -f /tmp/RMIServer.policy
-if %1=="" ( @echo "usage: setPolicy <port number>"
+if [ -z $1 ]; then
+	echo "usage: ./setPolicy <port number>"
 	exit
-)
-@echo "grant {\n\tpermission java.security.AllPermission;\n\tpermission java.net.SocketPermission \"localhost:%1\", \"connect, resolve\";\n\tpermission java.net.SocketPermission \"127.0.0.1:%1\", \"connect, resolve\";\n\tpermission java.net.SocketPermission \"localhost:%1\", \"connect, resolve\";\n};" > /tmp/RMIServer.policy
+fi
+sudo echo -e "grant {\n\tpermission java.security.AllPermission;\n\tpermission java.net.SocketPermission \"localhost:$1\", \"connect, resolve\";\n\tpermission java.net.SocketPermission \"127.0.0.1:$1\", \"connect, resolve\";\n\tpermission java.net.SocketPermission \"localhost:$1\", \"connect, resolve\";\n};" > /tmp/RMIServer.policy
