@@ -67,7 +67,7 @@ public class User implements RMIClient{
         switch(op){
             case "connect":
                 if (connected){
-                    System.err.println("[Client Error Message] : You are already connected");
+                    System.err.println("[Client Error Message] : You are already connected"); // TODO: modify the function so that you can connect to multiple servers..
                     return false;
                 }
                 System.out.println(ANSI_BLUE+"[Client Message] : Trying to connect to the server " + Serverhost + " ..."+ANSI_RESET);
@@ -76,7 +76,7 @@ public class User implements RMIClient{
                 try {
                     pullRegistry = LocateRegistry.getRegistry(Serverhost, serverPort);
                     ServerConnected = (RMIServerInterface) pullRegistry.lookup("RMISharedServer");
-                    connected = ServerConnected.ManageConnection(user, psw, this.host, op);
+                    connected = ServerConnected.ManageConnection(user, psw, this.host, op) == RMIServerInterface.ConnResponse.Success ? true : false;
                     if (connected) {
                         System.out.println(ANSI_BLUE+"[Client Message] : Done."+ANSI_RESET);
                         ChargeData();
@@ -91,7 +91,7 @@ public class User implements RMIClient{
                 System.out.println(ANSI_BLUE+"[Client Message] : Trying to disconnect from the server..."+ANSI_RESET);
                 CheckConnection();
                 try {
-                    if(ServerConnected.ManageConnection(username, password, this.host, op)) {
+                    if(ServerConnected.ManageConnection(username, password, this.host, op) == RMIServerInterface.ConnResponse.Success) {
                         connected = false;
                         ClientHandler.RMIshutDown(this);
                         System.out.println(ANSI_BLUE + "[Client Message] : Done." + ANSI_RESET);
