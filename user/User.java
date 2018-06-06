@@ -76,12 +76,11 @@ public class User implements RMIClient{
                 try {
                     pullRegistry = LocateRegistry.getRegistry(Serverhost, serverPort);
                     ServerConnected = (RMIServerInterface) pullRegistry.lookup("RMISharedServer");
-                    connected = ServerConnected.ManageConnection(user, psw, this.host, op);
+                    connected = ServerConnected.ManageConnection(user, psw, this.host, op) == RMIServerInterface.ConnResponse.Success ? true : false;
                     if (connected) {
                         System.out.println(ANSI_BLUE+"[Client Message] : Done."+ANSI_RESET);
                         ChargeData();
                     }
-                    serverHost = Serverhost;
                     return connected;
                 }catch (NotBoundException e) {
                     e.printStackTrace();
@@ -92,7 +91,7 @@ public class User implements RMIClient{
                 System.out.println(ANSI_BLUE+"[Client Message] : Trying to disconnect from the server..."+ANSI_RESET);
                 CheckConnection();
                 try {
-                    if(ServerConnected.ManageConnection(username, password, this.host, op)) {
+                    if(ServerConnected.ManageConnection(username, password, this.host, op) == RMIServerInterface.ConnResponse.Success) {
                         connected = false;
                         ClientHandler.RMIshutDown(this);
                         System.out.println(ANSI_BLUE + "[Client Message] : Done." + ANSI_RESET);
