@@ -14,7 +14,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 public class RMIServer implements RMIServerInterface {
-    private TopicList Topics; // TODO: to wrap into a class;
+    private TopicList Topics; //
     private ConcurrentHashMap<String, RMIClient> ClientList; // TODO: to wrap into a class;
     private ConcurrentHashMap<String, String> Credential; // TODO: incorporate into clientlist class...
     private PoolClass pool;
@@ -34,37 +34,40 @@ public class RMIServer implements RMIServerInterface {
     }
 
     @Override
-    public boolean ManageConnection(String username, String password, String address, String op) throws RemoteException {
+    public ConnResponse ManageConnection(String username, String password, String address, String op) throws RemoteException {
         switch (op) {
             case "connect":
-                if (ClientList.containsKey(username)) return false;
+                if (ClientList.containsKey(username)) return ConnResponse.AlreadyExist;
                 System.err.println("Adding [" + username + "] to Users!");
                 // init conversation with client...
                 try {
                     System.err.println("Trying to retrieve methods from " + address);
                     RMIClient stub = (RMIClient) serverHandler.getRemoteMethod(address);
                     System.err.println("DONE");
+                    Credential.putIfAbsent(username, password);
                     ClientList.putIfAbsent(username, stub);
                 } catch (ConnectException e) {
                     System.err.println("Host hasn't set its policy...");
-                    return false;
+                    kickUser(username);
+                    return ConnResponse.UnsetPolicy;
                 }catch (RemoteException e) {
                     System.err.println("Impossible to retrieve stub from client...");
-                    return false;
+                    kickUser(username);
+                    return ConnResponse.NoSuchObject;
                 } catch (NotBoundException e) {
                     System.err.println("Looks like there no shared object on that server...");
-                    return false;
+                    kickUser(username);
+                    return ConnResponse.NoSuchObject;
                 }
-                Credential.put(username, password);
+
                 break;
             case "disconnect":
-                if (!ClientList.containsKey(username)) return false;
+                if (!ClientList.containsKey(username)) return ConnResponse.NoSuchUser;
                 System.err.print("Removing [" + username + "] from Users:");
-                ClientList.remove(username);
-                Credential.remove(username);
+                kickUser(username);
                 break;
         }
-        return true;
+        return ConnResponse.Success;
     }
 
     @Override
@@ -116,6 +119,19 @@ public class RMIServer implements RMIServerInterface {
         }
     }
 
+    public boolean kickUser(String user){
+        if(!Credential.contains(user)||!ClientList.contains(user)) return false;
+        Credential.remove(user);
+        ClientList.remove(user);
+        return true;
+    }
+
+    public boolean removeTopic(String TopicLabel){
+        if(!Topics.contains(TopicLabel)) return false;
+        Topics.remove(TopicLabel);
+        return true;
+    }
+
     public void Notify(String TopicLabel, String TriggeredBy, boolean type) throws RemoteException {
         List<Future<String>> response = new ArrayList<>(ClientList.size());
         for (String s : ClientList.keySet()) {
@@ -135,7 +151,7 @@ public class RMIServer implements RMIServerInterface {
             }
             if(!result.equals("Reached")) {
                 printDebug("Impossible to invoke CliNotify from " + result + ": removing it from clients:");
-                ManageConnection(result, null, null, "disconnect");
+                kickUser(result);
             }
         }
     }
