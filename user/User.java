@@ -141,7 +141,7 @@ public class User implements RMIClient{
         CheckConnection();
         ChargeData();
         if(type) System.err.println("NM "+TopicLabel+" "+TriggeredBy);
-        else System.err.println("NM "+TopicLabel+" "+TriggeredBy);
+        else System.err.println("NT "+TopicLabel+" "+TriggeredBy);
     }
 
 
