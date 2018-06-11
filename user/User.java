@@ -139,20 +139,9 @@ public class User implements RMIClient{
     @Override
     public  void CLiNotify(String TopicLabel, String TriggeredBy, boolean type) throws RemoteException {
         CheckConnection();
-        // notifier.add(TopicLabel);
-        if(type){
-            if(!username.equals(TriggeredBy))
-                System.out.println(ANSI_GREEN+"[Server Message] : You have a new message from "+TriggeredBy+" on "+TopicLabel + ANSI_RESET);
-            else
-                System.out.println(ANSI_GREEN+"[Server Message] : You have sent a new message on "+TopicLabel+ ANSI_RESET);
-        }
-        else{
-            if(!username.equals(TriggeredBy))
-                System.out.println(ANSI_GREEN+"[Server Message] : "+TriggeredBy+" has created a new topic :  "+TopicLabel+ ANSI_RESET);
-            else
-                System.out.println(ANSI_GREEN+"[Server Message] : You have created a new topic : "+TopicLabel+ ANSI_RESET);
-        }
         ChargeData();
+        if(type) System.err.println("NM "+TopicLabel+" "+TriggeredBy);
+        else System.err.println("NM "+TopicLabel+" "+TriggeredBy);
     }
 
 
