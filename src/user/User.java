@@ -10,14 +10,15 @@ import java.rmi.registry.Registry;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static java.lang.Math.abs;
+
 
 public class User implements RMIClient{
     public Registry pullRegistry; /* Registry used for pulling remote method */
-  //  public Registry pushRegistry; /* Registry used for pushing remote method */ INTERNO NELLA CLASSE RMIUtility, non viene mai chiamato...
+    //  public Registry pushRegistry; /* Registry used for pushing remote method */ INTERNO NELLA CLASSE RMIUtility, non viene mai chiamato...
     public RMIServerInterface ServerConnected;
-    public RMICore.RMIClient Stub;
     private boolean connected = false;
-    private final int myListeningPort = 1099;
+    private int myListeningPort;
     private final int serverPort = 1969;
     private String host;
     private String username;
@@ -34,10 +35,10 @@ public class User implements RMIClient{
 
     public User(String myHost) throws UnknownHostException {
         host = myHost;
-        ClientHandler = new RMIUtility(myListeningPort,serverPort,"RMISharedClient","RMISharedServer");
+        ClientHandler = new RMIUtility(1099,"RMISharedClient","RMISharedServer");
         ServerTopics = new TopicList();
         TopicsMessages = new HashMap<>();
-        ClientHandler.serverSetUp(this, host);
+        myListeningPort = ClientHandler.serverSetUp(this, host);
     }
 
 
@@ -61,9 +62,9 @@ public class User implements RMIClient{
         System.out.println(ANSI_BLUE+"[Client Message] : Done."+ANSI_RESET);
     }
 
-  /*              Principal functions           */
+    /*              Principal functions           */
 
-    private  boolean ConnectionRequest(String Serverhost,String user,String psw, String op) throws  RemoteException {
+    public  boolean ConnectionRequest(String Serverhost,String user,String psw, String op) throws  RemoteException {
         switch(op){
             case "connect":
                 if (connected){
@@ -76,7 +77,7 @@ public class User implements RMIClient{
                 try {
                     pullRegistry = LocateRegistry.getRegistry(Serverhost, serverPort);
                     ServerConnected = (RMIServerInterface) pullRegistry.lookup("RMISharedServer");
-                    connected = ServerConnected.ManageConnection(user, psw, this.host, op) == RMIServerInterface.ConnResponse.Success ? true : false;
+                    connected = ServerConnected.ManageConnection(user, psw, this.host, myListeningPort, op) == RMIServerInterface.ConnResponse.Success;
                     if (connected) {
                         System.out.println(ANSI_BLUE+"[Client Message] : Done."+ANSI_RESET);
                         ChargeData();
@@ -91,10 +92,10 @@ public class User implements RMIClient{
                 System.out.println(ANSI_BLUE+"[Client Message] : Trying to disconnect from the server..."+ANSI_RESET);
                 CheckConnection();
                 try {
-                    if(ServerConnected.ManageConnection(username, password, this.host, op) == RMIServerInterface.ConnResponse.Success) {
+                    if(ServerConnected.ManageConnection(username, password, this.host, myListeningPort, op) == RMIServerInterface.ConnResponse.Success) {
                         connected = false;
                         ClientHandler.RMIshutDown(this);
-                        System.out.println(ANSI_BLUE + "[Client Message] : Done." + ANSI_RESET);
+                        System.out.println(ANSI_BLUE + "["+username+" Message] : Done." + ANSI_RESET);
                         return true;
                     }
                 }catch (NotBoundException e) {
@@ -107,7 +108,7 @@ public class User implements RMIClient{
     }
 
 
-    private boolean SubscribeRequest(String TopicName, String op) throws RemoteException {
+    public boolean SubscribeRequest(String TopicName, String op) throws RemoteException {
         CheckConnection();
         switch(op){
             case "subscribe":
@@ -122,13 +123,13 @@ public class User implements RMIClient{
         return false;
     }
 
-    private boolean AddTopicRequest(String TopicName) throws RemoteException {
+    public boolean AddTopicRequest(String TopicName) throws RemoteException {
         System.out.println(ANSI_BLUE+"[Client Message] : Trying to add the topic : "+TopicName+"..."+ANSI_RESET);
         CheckConnection();
         return ServerConnected.ManageAddTopic(TopicName, username);
     }
 
-    private boolean PublishRequest(MessageClass msg, String TopicName) throws RemoteException {
+    public boolean PublishRequest(MessageClass msg, String TopicName) throws RemoteException { // TODO: modify so that you just have to pass message...
         System.out.println(ANSI_BLUE+"[Client Message] : Trying to send the message on : "+TopicName+"..."+ANSI_RESET);
         CheckConnection();
         ServerConnected.ManagePublish(msg,TopicName);
@@ -178,11 +179,37 @@ public class User implements RMIClient{
         for(String k :  ServerTopics.ListTopicName()){
             System.out.println("[Debugging] : Topic = "+"["+k+"]");
             for(MessageClass m : TopicsMessages.get(k))
-            System.out.println("                          "+"["+m.getUser()+"] : "+m.getText());
+                System.out.println("                          "+"["+m.getUser()+"] : "+m.getText());
         }
     }
 
-    public static void main(String[] args) throws UnknownHostException,RemoteException{
+    private static class clientRequestConnection extends Thread{
+        private int clinum;
+        private String address;
+        public clientRequestConnection(int cn, String a){
+            clinum = cn;
+            address = a;
+        }
+        @Override
+        public void run(){
+            try {
+                User tempuser = new User(address);
+                tempuser.ConnectionRequest(address, "client_"+clinum, "1234", "connect");
+                tempuser.SubscribeRequest("HelpCenter", "subscribe");
+                tempuser.PublishRequest(new MessageClass(tempuser.GetUsername(), tempuser.GetUsername()+" is not a program created by rollingflamingo...."), "HelpCenter");
+                sleep(abs(new Random().nextInt()%1000));
+                tempuser.ConnectionRequest(address, "client_"+clinum, "1234", "disconnect");
+            } catch (UnknownHostException e) {
+                e.printStackTrace();
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public static void main(String[] args) throws UnknownHostException, RemoteException, InterruptedException {
         /*debug messages */
         MessageClass myMessage = new MessageClass("Mortino", "Sarebbe bello vedere i piedi di Re Julien da quel buchino!");
         MessageClass msg = new MessageClass("Mortino","Qualcuno mi risponde???");
@@ -220,9 +247,27 @@ public class User implements RMIClient{
         }
 
         myUser.PrintMap();
+
         if (!myUser.ConnectionRequest(args[0],myUser.username,myUser.password, "disconnect")) {
             System.err.println("[Client Error Message] : Mortino ,Something gone wrong,cannot disconnect from the server");
             System.exit(-1);
         }
+
+        User anotherUser = new User(args[0]);
+        if(anotherUser.ConnectionRequest(args[1], "andreo", "1234", "connect"))System.err.println("Connected");
+        if(anotherUser.ConnectionRequest(args[1], "andreo", "1234", "disconnect"))System.err.println("Disconnected");
+
+        System.out.println("Starting multi request:");
+
+        clientRequestConnection threads[] = new clientRequestConnection[10];
+        for(int i=0; i< threads.length; i++){
+            threads[i] = new clientRequestConnection(i, args[0]);
+            threads[i].start();
+        }
+
+        for(int i=0; i< threads.length; i++){
+            threads[i].join();
+        }
+        // System.exit(0);
     }
 }

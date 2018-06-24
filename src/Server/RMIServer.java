@@ -29,12 +29,12 @@ public class RMIServer implements RMIServerInterface {
         ClientList = new ConcurrentHashMap<>();
         Credential = new ConcurrentHashMap<>();
         pool = new PoolClass();
-        serverHandler = new RMIUtility(1969, 1099, "RMISharedServer", "RMISharedClient");
+        serverHandler = new RMIUtility(1969, "RMISharedServer", "RMISharedClient");
         myHost = Host;
     }
 
     @Override
-    public ConnResponse ManageConnection(String username, String password, String address, String op) throws RemoteException {
+    public ConnResponse ManageConnection(String username, String password, String address, int port, String op) throws RemoteException {
         switch (op) {
             case "connect":
                 if (ClientList.containsKey(username)) return ConnResponse.AlreadyExist;
@@ -42,7 +42,7 @@ public class RMIServer implements RMIServerInterface {
                 // init conversation with client...
                 try {
                     System.err.println("Trying to retrieve methods from " + address);
-                    RMIClient stub = (RMIClient) serverHandler.getRemoteMethod(address);
+                    RMIClient stub = (RMIClient) serverHandler.getRemoteMethod(address, port);
                     System.err.println("DONE");
                     Credential.putIfAbsent(username, password);
                     ClientList.putIfAbsent(username, stub);
