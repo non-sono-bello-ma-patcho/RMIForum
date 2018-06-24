@@ -1,7 +1,7 @@
 package RMIForum.user;
 
 
-import RMICore.*;
+import RMIForum.RMICore.*;
 import java.net.UnknownHostException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;

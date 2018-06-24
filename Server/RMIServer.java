@@ -1,6 +1,6 @@
 package RMIForum.Server;
 
-import RMICore.*;
+import RMIForum.RMICore.*;
 
 import java.rmi.ConnectException;
 import java.rmi.NotBoundException;
