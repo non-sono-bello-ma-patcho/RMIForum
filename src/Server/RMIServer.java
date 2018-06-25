@@ -14,7 +14,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 public class RMIServer implements RMIServerInterface {
-    private TopicList Topics; //
+    private TopicList Topics;
     private ConcurrentHashMap<String, RMIClient> ClientList; // TODO: to wrap into a class;
     private ConcurrentHashMap<String, String> Credential; // TODO: incorporate into clientlist class...
     private PoolClass pool;

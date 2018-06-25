@@ -19,7 +19,7 @@ package user;
         public RMIServerInterface ServerConnected;
         private boolean connected = false;
         private int myListeningPort;
-        private final int serverPort = 1969;
+        private final int serverPort = 1969; //TODO ask @rollinflamingo
         private String host;
         private String username;
         private String password;
@@ -29,7 +29,7 @@ package user;
         public static final String ANSI_GREEN = "\u001B[32m";
         public static final String ANSI_BLUE = "\u001B[34m";
         public static final String ANSI_RESET = "\u001B[0m";
-
+        public RMIServerInterface.ConnResponse Errorstatus = null;
 
         /*     constructor    */
 
@@ -43,11 +43,10 @@ package user;
 
 
         /*    auxiliary functions   */
-        // TODO: turn this function so that i returns the connection state instead exit program...
         public void CheckConnection(){
             if(!connected){
-                System.err.println("[Client Error Message] : You are not connected, operation failed");
-                System.exit(-1);
+                System.err.println("[Client Error Message] : NotConnected");
+                System.exit(-1); //lo lascio, poichè l'errore della connessione viene gestito altrove. questo è un caso partcolare.
             }
         }
 
@@ -62,26 +61,30 @@ package user;
             System.out.println(ANSI_BLUE+"[Client Message] : Done."+ANSI_RESET);
         }
 
+        private void CheckError(){
+            System.err.println("[Client Error Message] : "+Errorstatus.toString());
+        }
+
         /*              Principal functions           */
 
         public  boolean ConnectionRequest(String Serverhost,String user,String psw, String op) throws  RemoteException {
             switch(op){
                 case "connect":
                     if (connected){
-                        System.err.println("[Client Error Message] : You are already connected"); // TODO: modify the function so that you can connect to multiple servers..
+                        System.err.println("[Client Error Message] : You are already connected");
                         return false;
                     }
                     System.out.println(ANSI_BLUE+"[Client Message] : Trying to connect to the server " + Serverhost + " ..."+ANSI_RESET);
                     username = user;
                     password = psw;
                     try {
-                        pullRegistry = LocateRegistry.getRegistry(Serverhost, serverPort);
-                        ServerConnected = (RMIServerInterface) pullRegistry.lookup("RMISharedServer");
-                        connected = ServerConnected.ManageConnection(user, psw, this.host, myListeningPort, op) == RMIServerInterface.ConnResponse.Success;
-                        if (connected) {
+                        ServerConnected = (RMIServerInterface) ClientHandler.getRemoteMethod(Serverhost,serverPort);
+                        Errorstatus = ServerConnected.ManageConnection(user, psw, this.host, myListeningPort, op);
+                        if(Errorstatus.equals(RMIServerInterface.ConnResponse.Success)) {
+                            connected = true;
                             System.out.println(ANSI_BLUE+"[Client Message] : Done."+ANSI_RESET);
                             ChargeData();
-                        }
+                        } else  CheckError();
                         return connected;
                     }catch (NotBoundException e) {
                         e.printStackTrace();
@@ -92,12 +95,13 @@ package user;
                     System.out.println(ANSI_BLUE+"[Client Message] : Trying to disconnect from the server..."+ANSI_RESET);
                     CheckConnection();
                     try {
-                        if(ServerConnected.ManageConnection(username, password, this.host, myListeningPort, op) == RMIServerInterface.ConnResponse.Success) {
+                        Errorstatus = ServerConnected.ManageConnection(username, password, this.host, myListeningPort, op);
+                        if(Errorstatus.equals(RMIServerInterface.ConnResponse.Success)) {
                             connected = false;
                             ClientHandler.RMIshutDown(this);
                             System.out.println(ANSI_BLUE + "["+username+" Message] : Done." + ANSI_RESET);
                             return true;
-                        }
+                        }else CheckError();
                     }catch (NotBoundException e) {
                         e.printStackTrace();
                     }
@@ -129,10 +133,10 @@ package user;
             return ServerConnected.ManageAddTopic(TopicName, username);
         }
 
-        public boolean PublishRequest(MessageClass msg, String TopicName) throws RemoteException { // TODO: modify so that you just have to pass message...
+        public boolean PublishRequest(String text, String TopicName) throws RemoteException {
             System.out.println(ANSI_BLUE+"[Client Message] : Trying to send the message on : "+TopicName+"..."+ANSI_RESET);
             CheckConnection();
-            ServerConnected.ManagePublish(msg,TopicName);
+            ServerConnected.ManagePublish(new MessageClass(username,text),TopicName);
             return true;
         }
 
@@ -196,7 +200,7 @@ package user;
                     User tempuser = new User(address);
                     tempuser.ConnectionRequest(address, "client_"+clinum, "1234", "connect");
                     tempuser.SubscribeRequest("HelpCenter", "subscribe");
-                    tempuser.PublishRequest(new MessageClass(tempuser.GetUsername(), tempuser.GetUsername()+" is not a program created by rollingflamingo...."), "HelpCenter");
+                    tempuser.PublishRequest(tempuser.GetUsername()+" is not a program created by rollingflamingo....", "HelpCenter");
                     sleep(abs(new Random().nextInt()%1000));
                     tempuser.ConnectionRequest(address, "client_"+clinum, "1234", "disconnect");
                 } catch (UnknownHostException e) {
@@ -211,47 +215,13 @@ package user;
 
         public static void main(String[] args) throws UnknownHostException, RemoteException, InterruptedException {
             /*debug messages */
-            MessageClass myMessage = new MessageClass("Mortino", "Sarebbe bello vedere i piedi di Re Julien da quel buchino!");
-            MessageClass msg = new MessageClass("Mortino","Qualcuno mi risponde???");
-            MessageClass msg2 = new MessageClass("Mortino","Sapete come si crea un \"Topic\"???");
+
             /* end messages */
             // TODO: modify constructor so that the localhost is passed as a parameter (this works only on loopback...)
             User myUser = new User(args[0]);
-            if (!myUser.ConnectionRequest(args[1],"Mortino","12345", "connect")) {
-                System.err.println("[Client Error Message] : Mortino,Something gone wrong,retry to connect");
-                System.exit(-1);
-            }
-            if (!myUser.AddTopicRequest("Gloryhole"))
-                System.err.println("[Client Error Message] :The topic Gloryhole already exist");
-            if (!myUser.AddTopicRequest("HelpCenter"))
-                System.err.println("[Client Error Message] :The topic HelpCenter already exist");
-
-            if (!myUser.SubscribeRequest("Gloryhole", "subscribe"))
-                System.err.println("[Client Error Message] : Something gone wrong,retry to subscribe on Gloryhole topic");
-            else {
-                if (!myUser.PublishRequest(myMessage, "Gloryhole")) {
-                    System.err.println("[Client Error Message] :Something gone wrong, message not sent to Gloryhole");
-                }
-                if (!myUser.PublishRequest(msg, "Gloryhole")) {
-                    System.err.println("[Client Error Message] :Something gone wrong, message not sent to Gloryhole");
-                }
-            }
-            if (!myUser.SubscribeRequest("Gloryhole", "unsubscribe"))
-                System.err.println("[Client Error Message] : Something gone wrong,retry to unsubscribe on Gloryhole topic");
-            if (!myUser.SubscribeRequest("HelpCenter", "subscribe"))
-                System.err.println("[Client Error Message] : Something gone wrong,retry to subscribe on HelpCenter topic");
-            else{
-                if (!myUser.PublishRequest(msg2, "HelpCenter")) {
-                    System.err.println("[Client Error Message] :Something gone wrong, message not sent to HelpCenter");
-                }
-            }
 
             myUser.PrintMap();
 
-            if (!myUser.ConnectionRequest(args[0],myUser.username,myUser.password, "disconnect")) {
-                System.err.println("[Client Error Message] : Mortino ,Something gone wrong,cannot disconnect from the server");
-                System.exit(-1);
-            }
 
             User anotherUser = new User(args[0]);
             if(anotherUser.ConnectionRequest(args[1], "andreo", "1234", "connect"))System.err.println("Connected");
