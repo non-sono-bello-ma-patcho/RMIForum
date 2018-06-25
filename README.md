@@ -8,7 +8,7 @@ This is a Work in progress, stay tuned
 ## RMIServer API
 ### Exportable methods:
 ```java
-boolean ManageConnection(String username, String pw, String adress, String op);
+boolean ManageConnection(String username, String pw, String adress, int port, String op);
 boolean ManageAddTopic(String TopicLabel, String TopicOwner);
 boolean ManageSubscribe(String TopicLabel, String User, boolean unsubscribe);
 boolean ManagePublish(MessageClass msg, String TopicLabel);

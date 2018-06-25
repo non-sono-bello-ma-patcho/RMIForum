@@ -120,7 +120,7 @@ public class RMIServer implements RMIServerInterface {
     }
 
     public boolean kickUser(String user){
-        if(!Credential.contains(user)||!ClientList.contains(user)) return false;
+        if(!Credential.containsKey(user)||!ClientList.containsKey(user)) return false;
         Credential.remove(user);
         ClientList.remove(user);
         return true;
@@ -186,7 +186,7 @@ public class RMIServer implements RMIServerInterface {
         System.err.println(ANSI_BLUE+"[Debug]: "+text+ANSI_RESET);
     }
 
-    class notifyHandler implements Callable {
+    class notifyHandler implements Callable<String> {
         String username, topiclabel, triggeredby;
         boolean type;
         RMIClient stub;
