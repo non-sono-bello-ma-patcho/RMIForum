@@ -120,7 +120,7 @@ public class RMIServer implements RMIServerInterface {
     }
 
     public boolean kickUser(String user){
-        if(!Credential.containsKey(user)||!ClientList.contains(user)) return false;
+        if(!Credential.containsKey(user)||!ClientList.containsKey(user)) return false;
         Credential.remove(user);
         ClientList.remove(user);
         return true;
