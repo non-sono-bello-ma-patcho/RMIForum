@@ -67,6 +67,8 @@ package user;
         /*              Principal functions           */
 
         public  boolean ConnectionRequest(String Serverhost,String user,String psw, String op) throws  RemoteException {
+            // TODO: lo start del lato client non dovrebbe avvenire qui? altrimenti dopo la prima volta che mi disconnetto non posso più riconnettermi...
+            // TODO: nel caso decommenta.. myListeningPort = ClientHandler.serverSetUp(this, host);
             switch(op){
                 case "connect":
                     if (connected){
