@@ -208,7 +208,7 @@ public class RMIServer implements RMIServerInterface {
         }
     }
 
-    private Future notifyClient(String user, RMIClient userstub, String tl, String tb, boolean t){
+    private Future<String> notifyClient(String user, RMIClient userstub, String tl, String tb, boolean t){
         return pool.submit(new notifyHandler(user, userstub, tl, tb, t));
     }
 }
