@@ -38,24 +38,23 @@ public class RMIServer implements RMIServerInterface {
         switch (op) {
             case "connect":
                 if (ClientList.containsKey(username)) return ConnResponse.AlreadyExist;
-                System.err.println("Adding [" + username + "] to Users!");
+                printDebug("Adding [" + username + "] to Users!");
                 // init conversation with client...
                 try {
-                    System.err.println("Trying to retrieve methods from " + address);
+                    printDebug("Trying to retrieve methods from " + address);
                     RMIClient stub = (RMIClient) serverHandler.getRemoteMethod(address, port);
-                    System.err.println("DONE");
                     Credential.putIfAbsent(username, password);
                     ClientList.putIfAbsent(username, stub);
                 } catch (ConnectException e) {
-                    System.err.println("Host hasn't set its policy...");
+                    printDebug("Host hasn't set its policy...");
                     kickUser(username);
                     return ConnResponse.UnsetPolicy;
                 }catch (RemoteException e) {
-                    System.err.println("Impossible to retrieve stub from client...");
+                    printDebug("Impossible to retrieve stub from client...");
                     kickUser(username);
                     return ConnResponse.NoSuchObject;
                 } catch (NotBoundException e) {
-                    System.err.println("Looks like there no shared object on that server...");
+                    printDebug("Looks like there no shared object on that server...");
                     kickUser(username);
                     return ConnResponse.NoSuchObject;
                 }
@@ -63,7 +62,7 @@ public class RMIServer implements RMIServerInterface {
                 break;
             case "disconnect":
                 if (!ClientList.containsKey(username)) return ConnResponse.NoSuchUser;
-                System.err.print("Removing [" + username + "] from Users:");
+                printDebug("Removing [" + username + "] from Users:");
                 kickUser(username);
                 break;
         }
@@ -98,7 +97,7 @@ public class RMIServer implements RMIServerInterface {
     @Override
     public boolean ManageAddTopic(String TopicName, String TopicOwner) throws RemoteException {
         if(Topics.contains(TopicName)) return false;
-        System.err.println("Adding ["+TopicName+"] to Topics!");
+        printDebug("Adding ["+TopicName+"] to Topics!");
         Topics.put(new TopicClass(TopicName, TopicOwner));
         Notify(TopicName, TopicOwner, false);
         return true;
@@ -129,10 +128,11 @@ public class RMIServer implements RMIServerInterface {
     public boolean removeTopic(String TopicLabel){
         if(!Topics.contains(TopicLabel)) return false;
         Topics.remove(TopicLabel);
+        // TODO: notify clients you removed the topic...
         return true;
     }
 
-    public void Notify(String TopicLabel, String TriggeredBy, boolean type) throws RemoteException {
+    private void Notify(String TopicLabel, String TriggeredBy, boolean type) throws RemoteException {
         List<Future<String>> response = new ArrayList<>(ClientList.size());
         for (String s : ClientList.keySet()) {
             if (Topics.getTopicNamed(TopicLabel).hasUser(s) || !type) { // notify only if a topic has been added or the user is subscribed...
@@ -190,7 +190,7 @@ public class RMIServer implements RMIServerInterface {
         String username, topiclabel, triggeredby;
         boolean type;
         RMIClient stub;
-        public notifyHandler(String user, RMIClient userstub, String tl, String tb, boolean t){
+        private notifyHandler(String user, RMIClient userstub, String tl, String tb, boolean t){
             username = user;
             stub = userstub;
             topiclabel = tl;
@@ -208,7 +208,7 @@ public class RMIServer implements RMIServerInterface {
         }
     }
 
-    private Future notifyClient(String user, RMIClient userstub, String tl, String tb, boolean t){
+    private Future<String> notifyClient(String user, RMIClient userstub, String tl, String tb, boolean t){
         return pool.submit(new notifyHandler(user, userstub, tl, tb, t));
     }
 }
