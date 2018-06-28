@@ -18,7 +18,7 @@ public class User implements RMIClient{
     public RMIServerInterface ServerConnected;
     private boolean connected = false;
     private int myListeningPort;
-    private final int serverPort = 1969; //TODO ask @rollinflamingo
+    private final int serverPort = 1969;
     private String host;
     private String username;
     private String password;
@@ -37,7 +37,6 @@ public class User implements RMIClient{
         ClientHandler = new RMIUtility(1099,"RMISharedClient","RMISharedServer");
         ServerTopics = new TopicList();
         TopicsMessages = new HashMap<>();
-        myListeningPort = ClientHandler.serverSetUp(this, host);
     }
 
 
@@ -67,6 +66,7 @@ public class User implements RMIClient{
     /*              Principal functions           */
 
     public  boolean ConnectionRequest(String Serverhost,String user,String psw, String op) throws  RemoteException {
+        myListeningPort = ClientHandler.serverSetUp(this, host);
         switch(op){
             case "connect":
                 if (connected){
@@ -143,8 +143,8 @@ public class User implements RMIClient{
     public  void CLiNotify(String TopicLabel, String TriggeredBy, boolean type) throws RemoteException {
         CheckConnection();
         // notifier.add(TopicLabel);
-        if(type) System.out.println("np"+" "+TriggeredBy+" "+TopicLabel);
-        else System.out.println("nt"+" "+TriggeredBy+" "+TopicLabel);
+        if(type) System.out.println("_NP_"+" "+TriggeredBy+" "+TopicLabel);
+        else System.out.println("_NT_"+" "+TriggeredBy+" "+TopicLabel);
         ChargeData();
     }
 
