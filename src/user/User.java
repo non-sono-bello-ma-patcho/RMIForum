@@ -18,7 +18,7 @@ package user;
         public RMIServerInterface ServerConnected;
         private boolean connected = false;
         private int myListeningPort;
-        private final int serverPort = 1969; //TODO ask @rollinflamingo
+        private final int serverPort = 1969;
         private String host;
         private String username;
         private String password;
@@ -66,8 +66,6 @@ package user;
         /*              Principal functions           */
 
         public  boolean ConnectionRequest(String Serverhost,String user,String psw, String op) throws  RemoteException {
-            // TODO: lo start del lato client non dovrebbe avvenire qui? altrimenti dopo la prima volta che mi disconnetto non posso più riconnettermi...
-            // TODO: nel caso decommenta.. myListeningPort = ClientHandler.serverSetUp(this, host);
             myListeningPort = ClientHandler.serverSetUp(this, host);
             switch(op){
                 case "connect":
@@ -145,8 +143,8 @@ package user;
         public  void CLiNotify(String TopicLabel, String TriggeredBy, boolean type) throws RemoteException {
             CheckConnection();
             // notifier.add(TopicLabel);
-            if(type) System.out.println("np"+" "+TriggeredBy+" "+TopicLabel);
-            else System.out.println("nt"+" "+TriggeredBy+" "+TopicLabel);
+            if(type) System.out.println("_NP_"+" "+TriggeredBy+" "+TopicLabel);
+            else System.out.println("_NT_"+" "+TriggeredBy+" "+TopicLabel);
             ChargeData();
         }
 
