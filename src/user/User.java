@@ -37,7 +37,6 @@ package user;
             ClientHandler = new RMIUtility(1099,"RMISharedClient","RMISharedServer");
             ServerTopics = new TopicList();
             TopicsMessages = new HashMap<>();
-            myListeningPort = ClientHandler.serverSetUp(this, host);
         }
 
 
@@ -83,6 +82,7 @@ package user;
                         Errorstatus = ServerConnected.ManageConnection(user, psw, this.host, myListeningPort, op);
                         if(Errorstatus.equals(RMIServerInterface.ConnResponse.Success)) {
                             connected = true;
+                            myListeningPort = ClientHandler.serverSetUp(this, host);
                             System.out.println(ANSI_BLUE+"[Client Message] : Done."+ANSI_RESET);
                             ChargeData();
                         } else  CheckError();
