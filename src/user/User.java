@@ -68,6 +68,7 @@ package user;
         public  boolean ConnectionRequest(String Serverhost,String user,String psw, String op) throws  RemoteException {
             // TODO: lo start del lato client non dovrebbe avvenire qui? altrimenti dopo la prima volta che mi disconnetto non posso più riconnettermi...
             // TODO: nel caso decommenta.. myListeningPort = ClientHandler.serverSetUp(this, host);
+            myListeningPort = ClientHandler.serverSetUp(this, host);
             switch(op){
                 case "connect":
                     if (connected){
@@ -82,7 +83,6 @@ package user;
                         Errorstatus = ServerConnected.ManageConnection(user, psw, this.host, myListeningPort, op);
                         if(Errorstatus.equals(RMIServerInterface.ConnResponse.Success)) {
                             connected = true;
-                            myListeningPort = ClientHandler.serverSetUp(this, host);
                             System.out.println(ANSI_BLUE+"[Client Message] : Done."+ANSI_RESET);
                             ChargeData();
                         } else  CheckError();
