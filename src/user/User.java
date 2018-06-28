@@ -1,12 +1,12 @@
 package user;
 
 
-    import RMICore.*;
-    import java.net.UnknownHostException;
-    import java.rmi.NotBoundException;
-    import java.rmi.RemoteException;
-    import java.rmi.registry.Registry;
-    import java.util.*;
+import RMICore.*;
+import java.net.UnknownHostException;
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
+import java.rmi.registry.Registry;
+import java.util.*;
 
 
     import static java.lang.Math.abs;
