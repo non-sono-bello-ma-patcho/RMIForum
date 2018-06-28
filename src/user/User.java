@@ -58,7 +58,7 @@ public class User implements RMIClient{
     }
 
     private void CheckError(){
-        System.err.println("[Client Error Message] : "+Errorstatus.toString());
+        System.err.println("["+username+" Error Message]: "+Errorstatus.toString());
     }
 
     /*              Principal functions           */
@@ -91,7 +91,8 @@ public class User implements RMIClient{
         System.out.println(ANSI_BLUE+"[Client Message] : Trying to disconnect from the server..."+ANSI_RESET);
         CheckConnection();
         try {
-            if(ServerConnected.ManageConnection(username, password, this.host, myListeningPort, "disconnect").equals(RMIServerInterface.ConnResponse.Success)) {
+            Errorstatus = ServerConnected.ManageConnection(username, password, this.host, myListeningPort, "disconnect");
+            if(Errorstatus.equals(RMIServerInterface.ConnResponse.Success)) {
                 connected = false;
                 ClientHandler.RMIshutDown(this);
                 System.out.println(ANSI_BLUE + "["+username+" Message] : Done." + ANSI_RESET);
@@ -102,7 +103,7 @@ public class User implements RMIClient{
         } catch (RemoteException e) {
             e.printStackTrace();
         }
-        return true;
+        return false;
     }
 
     public boolean SubscribeRequest(String TopicName, String op) throws RemoteException {
@@ -115,7 +116,7 @@ public class User implements RMIClient{
                 System.out.println(ANSI_BLUE+"[Client Message] : Trying to unsubscribe to : "+TopicName+"..."+ANSI_RESET);
                 return ServerConnected.ManageSubscribe(TopicName,username,true);
             default:
-                System.err.println("[Client Error Message] : invalid operation");
+                System.err.println("["+username+" Error Message] : invalid operation");
         }
         return false;
     }
@@ -208,6 +209,7 @@ public class User implements RMIClient{
 
         User anotherUser = new User(args[0]);
         if(anotherUser.ConnectionRequest(args[1], "andreo", "1234"))System.err.println("Connected");
+        if(anotherUser.AddTopicRequest("HelpCenter")) System.err.println("Added");
         if(anotherUser.disconnect())System.err.println("Disconnected");
 
         System.out.println("Starting multi request:");
@@ -219,8 +221,8 @@ public class User implements RMIClient{
         }
 
         for(int i=0; i< threads.length; i++){
-            threads[i].join();
+            threads[i].join(1000);
         }
-        // System.exit(0);
+        System.exit(0);
     }
 }
