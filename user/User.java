@@ -66,13 +66,13 @@ public class User implements RMIClient{
     /*              Principal functions           */
 
     public  boolean ConnectionRequest(String Serverhost,String user,String psw, String op) throws  RemoteException {
-        myListeningPort = ClientHandler.serverSetUp(this, host);
         switch(op){
             case "connect":
                 if (connected){
                     System.err.println("[Client Error Message] : You are already connected");
                     return false;
                 }
+                myListeningPort = ClientHandler.serverSetUp(this, host);
                 System.out.println(ANSI_BLUE+"[Client Message] : Trying to connect to the server " + Serverhost + " ..."+ANSI_RESET);
                 username = user;
                 password = psw;
@@ -94,7 +94,9 @@ public class User implements RMIClient{
                 System.out.println(ANSI_BLUE+"[Client Message] : Trying to disconnect from the server..."+ANSI_RESET);
                 CheckConnection();
                 try {
+                    System.err.println("Sending disconnection request");
                     Errorstatus = ServerConnected.ManageConnection(username, password, this.host, myListeningPort, op);
+                    System.err.println("DONE");
                     if(Errorstatus.equals(RMIServerInterface.ConnResponse.Success)) {
                         connected = false;
                         ClientHandler.RMIshutDown(this);
@@ -104,6 +106,7 @@ public class User implements RMIClient{
                 }catch (NotBoundException e) {
                     e.printStackTrace();
                 }
+                break;
             default:
                 System.err.println("[Client Error Message] : invalid operation");
         }
