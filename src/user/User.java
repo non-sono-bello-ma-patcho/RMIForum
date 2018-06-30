@@ -216,6 +216,15 @@ public class User implements RMIClient{
             System.err.println("Topic refused. Exit");
             System.exit(0);
         }
+        if(anotherUser.AddTopicRequest("Offtopic")) System.err.println("Added");
+        else  System.err.println("Topic refused...... :(");
+        if(anotherUser.AddTopicRequest("Buket")) System.err.println("Added");
+        else  System.err.println("Topic refused...... :(");
+        if(anotherUser.AddTopicRequest("CookingMama")) System.err.println("Added");
+        else  System.err.println("Topic refused...... :(");
+        if(anotherUser.AddTopicRequest("BenedettaParodi")) System.err.println("Added");
+        else  System.err.println("Topic refused...... :(");
+
         if(anotherUser.disconnect())System.err.println("Disconnected");
 
         System.out.println("Starting multi request:");

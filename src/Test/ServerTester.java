@@ -164,7 +164,9 @@ public class ServerTester extends RMIServer {
             st.start();
             sleep(10000);
             st.ManageMap();
-            sleep(100000);
+            sleep(10000);
+            st.ManageMap();
+            sleep(10000);
             st.shutdown();
         } catch (UnknownHostException e) {
             e.printStackTrace();
