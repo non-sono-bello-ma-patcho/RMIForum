@@ -60,7 +60,7 @@ public class ServerTester extends RMIServer {
         SelectTopic.put(TopicName,0);
         while(SelectTopic.get(TopicName).equals(0)){} // LOOK MANAGEMAP!
         if(SelectTopic.get(TopicName).equals(1))
-            return true;
+            return super.ManageAddTopic(TopicName,TopicOwner);
         else return false;
     }
 
