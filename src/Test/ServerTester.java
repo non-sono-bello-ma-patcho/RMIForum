@@ -35,10 +35,10 @@ public class ServerTester extends RMIServer {
 
     public void ManageMap(){
         for(String k :  SelectTopic.keySet()) {
-            System.err.println("someone is trying to create new topic : " + k + " Accept? [Y/n]: ");
-            Scanner sc = new Scanner(System.in);
-            String op = sc.next();
             while (true) {
+                System.err.println("someone is trying to create new topic : " + k + " Accept? [Y/n]: ");
+                Scanner sc = new Scanner(System.in);
+                String op = sc.next();
                 switch (op) {
                     case "y":
                     case "Y":
@@ -159,6 +159,8 @@ public class ServerTester extends RMIServer {
             ServerTester st = new ServerTester(InetAddress.getLocalHost().getHostAddress());
             st.start();
             sleep(10000);
+            st.ManageMap();
+            sleep(100000000);
             st.shutdown();
         } catch (UnknownHostException e) {
             e.printStackTrace();
