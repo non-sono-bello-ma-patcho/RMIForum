@@ -11,21 +11,28 @@ import java.rmi.NotBoundException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.Scanner;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static java.lang.Thread.sleep;
 
 public class ServerTester extends RMIServer {
     private User clientSide;
+    private ConcurrentHashMap<String,Integer> SelectTopic;
 
     public ServerTester(String address) throws UnknownHostException {
         super(address);
         clientSide = new User(address);
+        SelectTopic = new ConcurrentHashMap<>();
     }
 
     /*-- Server Side --*/
     /*-- Make all this functions selective --*/
     @Override
     public ConnResponse ManageConnection(String username, String password, String address, int port, String op) throws RemoteException {
+        return super.ManageConnection(username,password,address,port,op);
+
+        /*selective method ( without using queue)*/
+        /*
         System.err.println(username+" is trying to estabilish a connection. Accept? [Y/n]: ");
         Scanner sc = new Scanner(System.in);
         String operation = sc.next();
@@ -40,12 +47,41 @@ public class ServerTester extends RMIServer {
                 default:
                     System.err.println("Invalid operation");
             }
+        }*/
+    }
+
+    public void ManageMap(){
+        for(String k :  SelectTopic.keySet()) {
+            System.err.println("someone is trying to create new topic : " + k + " Accept? [Y/n]: ");
+            Scanner sc = new Scanner(System.in);
+            String op = sc.next();
+            while (true) {
+                switch (op) {
+                    case "y":
+                    case "Y":
+                        SelectTopic.replace(k, 1);
+                        break;
+                    case "n":
+                    case "N":
+                        SelectTopic.replace(k, -1);
+                        break;
+                    default:
+                        System.err.println("Invalid operation");
+                }
+            }
         }
     }
 
     @Override
     public boolean ManageAddTopic(String TopicName, String TopicOwner) throws RemoteException{
-        System.err.println("someone is trying to create new topic : "+TopicName+" Accept? [Y/n]: ");
+        SelectTopic.put(TopicName,0);
+        while(SelectTopic.get(TopicName).equals(0)){} // LOOK MANAGEMAP!
+        if(SelectTopic.get(TopicName).equals(1))
+            return true;
+        else return false;
+
+        /* other selective method too slow */
+       /* System.err.println("someone is trying to create new topic : "+TopicName+" Accept? [Y/n]: ");
         Scanner sc = new Scanner(System.in);
         String op = sc.next();
         while(true) {
@@ -60,6 +96,7 @@ public class ServerTester extends RMIServer {
                     System.err.println("Invalid operation");
             }
         }
+        */
     }
 
     @Override
@@ -106,27 +143,27 @@ public class ServerTester extends RMIServer {
     }
 
     // client methods side //
-    public Boolean ConnectionRequest(String username, String password) throws RemoteException {
+    public boolean ConnectionRequest(String username, String password) throws RemoteException {
         return clientSide.ConnectionRequest(getHost(),username,password);
     }
 
-    public Boolean Disconnect(){
+    public boolean Disconnect(){
         return clientSide.disconnect();
     }
 
-    public Boolean SubscribeRequest(String TopicName,String operation) throws RemoteException{
+    public boolean SubscribeRequest(String TopicName,String operation) throws RemoteException{
         return clientSide.SubscribeRequest(TopicName,operation);
     }
 
-    public Boolean AddTopicRequest(String Topicname) throws RemoteException{
+    public boolean AddTopicRequest(String Topicname) throws RemoteException{
         return clientSide.AddTopicRequest(Topicname);
     }
 
-    public Boolean PublishRequest(String text, String Topicname) throws RemoteException {
+    public boolean PublishRequest(String text, String Topicname) throws RemoteException {
         return clientSide.PublishRequest(text,Topicname);
     }
 
-    public void CliNotify(String TopicLabel,String TriggeredBy, Boolean type) throws RemoteException {
+    public void CliNotify(String TopicLabel,String TriggeredBy, boolean type) throws RemoteException {
         clientSide.CLiNotify(TopicLabel,TriggeredBy,type);
     }
 
