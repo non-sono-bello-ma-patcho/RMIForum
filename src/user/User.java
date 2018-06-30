@@ -212,6 +212,10 @@ public class User implements RMIClient{
         User anotherUser = new User(args[0]);
         if(anotherUser.ConnectionRequest(args[1], "andreo", "1234"))System.err.println("Connected");
         if(anotherUser.AddTopicRequest("HelpCenter")) System.err.println("Added");
+        else {
+            System.err.println("Topic refused. Exit");
+            System.exit(0);
+        }
         if(anotherUser.disconnect())System.err.println("Disconnected");
 
         System.out.println("Starting multi request:");

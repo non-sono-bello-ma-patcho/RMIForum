@@ -39,18 +39,22 @@ public class ServerTester extends RMIServer {
                 System.err.println("someone is trying to create new topic : " + k + " Accept? [Y/n]: ");
                 Scanner sc = new Scanner(System.in);
                 String op = sc.next();
+                boolean breakLoop = false;
                 switch (op) {
                     case "y":
                     case "Y":
                         SelectTopic.replace(k, 1);
+                        breakLoop = true;
                         break;
                     case "n":
                     case "N":
                         SelectTopic.replace(k, -1);
+                        breakLoop = true;
                         break;
                     default:
                         System.err.println("Invalid operation");
                 }
+                if(breakLoop) break;
             }
         }
     }
@@ -160,7 +164,7 @@ public class ServerTester extends RMIServer {
             st.start();
             sleep(10000);
             st.ManageMap();
-            sleep(100000000);
+            sleep(100000);
             st.shutdown();
         } catch (UnknownHostException e) {
             e.printStackTrace();
