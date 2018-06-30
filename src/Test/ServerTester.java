@@ -30,25 +30,8 @@ public class ServerTester extends RMIServer {
     @Override
     public ConnResponse ManageConnection(String username, String password, String address, int port, String op) throws RemoteException {
         return super.ManageConnection(username,password,address,port,op);
-
-        /*selective method ( without using queue)*/
-        /*
-        System.err.println(username+" is trying to estabilish a connection. Accept? [Y/n]: ");
-        Scanner sc = new Scanner(System.in);
-        String operation = sc.next();
-        while(true) {
-            switch (operation) {
-                case "y":
-                case "Y":
-                    return super.ManageConnection(username, password, address, port, op);
-                case "n":
-                case "N":
-                    return ConnResponse.ConnectionRefused;
-                default:
-                    System.err.println("Invalid operation");
-            }
-        }*/
     }
+
 
     public void ManageMap(){
         for(String k :  SelectTopic.keySet()) {
@@ -79,24 +62,6 @@ public class ServerTester extends RMIServer {
         if(SelectTopic.get(TopicName).equals(1))
             return true;
         else return false;
-
-        /* other selective method too slow */
-       /* System.err.println("someone is trying to create new topic : "+TopicName+" Accept? [Y/n]: ");
-        Scanner sc = new Scanner(System.in);
-        String op = sc.next();
-        while(true) {
-            switch (op) {
-                case "y":
-                case "Y":
-                    return super.ManageAddTopic(TopicName,TopicOwner);
-                case "n":
-                case "N":
-                    return false;
-                default:
-                    System.err.println("Invalid operation");
-            }
-        }
-        */
     }
 
     @Override
