@@ -162,6 +162,8 @@ public class User implements RMIClient{
         return ServerTopics;
     }
 
+    public String getHost(){ return host;}
+
     /*      Debugging function     */
     private void PrintMap(){
         for(String k :  ServerTopics.ListTopicName()){
