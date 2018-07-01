@@ -159,16 +159,19 @@ public class ServerTester extends RMIServer {
 
     public User getUser(){ return clientSide;}
 
+    public void test(ServerTester st) throws InterruptedException {
+        while(!SelectTopic.isEmpty()) {
+            sleep(1000);
+            st.ManageMap();
+        }
+    }
 
-    public static void main(String [] args){
+    public static void main(String[] args){
         try {
             ServerTester st = new ServerTester(InetAddress.getLocalHost().getHostAddress());
             st.start();
             sleep(10000);
-            st.ManageMap();
-            sleep(10000);
-            st.ManageMap();
-            sleep(10000);
+            st.test(st);
             st.shutdown();
         } catch (UnknownHostException e) {
             e.printStackTrace();
