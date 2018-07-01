@@ -63,8 +63,10 @@ public class ServerTester extends RMIServer {
     public boolean ManageAddTopic(String TopicName, String TopicOwner) throws RemoteException{
         SelectTopic.put(TopicName,0);
         while(SelectTopic.get(TopicName).equals(0)){} // LOOK MANAGEMAP!
-        if(SelectTopic.get(TopicName).equals(1))
-            return super.ManageAddTopic(TopicName,TopicOwner);
+        if(SelectTopic.get(TopicName).equals(1)) {
+            SelectTopic.remove(SelectTopic.get(TopicName));
+            return super.ManageAddTopic(TopicName, TopicOwner);
+        }
         else return false;
     }
 
