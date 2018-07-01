@@ -114,6 +114,10 @@ public class RMIServer implements RMIServerInterface {
         return true;
     }
 
+    public boolean removeMessage(String TopicLabel, String message){
+        return Topics.getTopicNamed(TopicLabel).removeMessage(message);
+    }
+
     public static void printInfo(RMIServer rs){ /*should it be right for the client class too?*/
         System.out.println("Available Topics:");
         for(String t : rs.Topics.ListTopicName()) System.out.println(t);
