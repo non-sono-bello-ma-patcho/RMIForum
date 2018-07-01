@@ -64,7 +64,7 @@ public class ServerTester extends RMIServer {
         SelectTopic.put(TopicName,0);
         while(SelectTopic.get(TopicName).equals(0)){} // LOOK MANAGEMAP!
         if(SelectTopic.get(TopicName).equals(1)) {
-            SelectTopic.remove(SelectTopic.get(TopicName));
+            SelectTopic.remove(SelectTopic.get(TopicName)); //dovrei trovare un modo per non farlo andare in loop
             return super.ManageAddTopic(TopicName, TopicOwner);
         }
         else return false;
@@ -159,7 +159,12 @@ public class ServerTester extends RMIServer {
 
     public User getUser(){ return clientSide;}
 
-    public void test(ServerTester st) throws InterruptedException {
+
+
+
+    /*non ha senso */
+    public void test(ServerTester st) throws InterruptedException { // va in loop èerchè elimino solo nella manage add topic quindi
+        //dipende dalla schedulazione
         while(!SelectTopic.isEmpty()) {
             sleep(1000);
             st.ManageMap();
@@ -171,7 +176,7 @@ public class ServerTester extends RMIServer {
             ServerTester st = new ServerTester(InetAddress.getLocalHost().getHostAddress());
             st.start();
             sleep(10000);
-            st.test(st);
+            st.test(st); // non ha senso va in loop perchè elimino solamente nella manage add topic
             st.shutdown();
         } catch (UnknownHostException e) {
             e.printStackTrace();
