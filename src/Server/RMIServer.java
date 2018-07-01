@@ -43,8 +43,8 @@ public class RMIServer implements RMIServerInterface {
                 try {
                     printDebug("Trying to retrieve methods from " + address);
                     RMIClient stub = (RMIClient) serverHandler.getRemoteMethod(address, port);
-                    Credential.putIfAbsent(username, password);
                     ClientList.putIfAbsent(username, stub);
+                    Credential.putIfAbsent(username, password);
                 } catch (ConnectException e) {
                     printDebug("Host hasn't set its policy...");
                     kickUser(username);
@@ -59,8 +59,19 @@ public class RMIServer implements RMIServerInterface {
                     return ConnResponse.NoSuchObject;
                 }
 
+                printDebug("Added! Checking presence by calling notify on it");
+                for(String s : ClientList.keySet()) System.err.println(s);
+                try {
+                    ClientList.get(username).CLiNotify("TestInvoke", "Server", true);
+                } catch (NullPointerException e){
+                    System.err.println("Connection failed...");
+                    return ConnResponse.NoSuchUser;
+                }
+
                 break;
             case "disconnect":
+                System.err.println("Utenti registrati prima della rimozione di "+username);
+                for(String s : ClientList.keySet()) System.err.println(s);
                 if (!ClientList.containsKey(username)) return ConnResponse.NoSuchUser;
                 printDebug("Removing [" + username + "] from Users:");
                 kickUser(username);

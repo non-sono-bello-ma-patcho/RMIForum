@@ -40,10 +40,10 @@ public class User implements RMIClient{
 
     /*    auxiliary functions   */
     public void CheckConnection(){
-        if(!connected){
+        /*if(!connected){
             System.err.println("[Client Error Message] : NotConnected");
             System.exit(-1); //lo lascio, poichè l'errore della connessione viene gestito altrove. questo è un caso partcolare.
-        }
+        }*/
     }
 
     private void ChargeData() throws RemoteException{
@@ -92,7 +92,7 @@ public class User implements RMIClient{
         CheckConnection();
         try {
             Errorstatus = ServerConnected.ManageConnection(username, password, this.host, myListeningPort, "disconnect");
-            if(Errorstatus.equals(RMIServerInterface.ConnResponse.Success)) {
+            if(Errorstatus == RMIServerInterface.ConnResponse.Success) {
                 connected = false;
                 ClientHandler.RMIshutDown(this);
                 System.out.println(ANSI_BLUE + "["+username+" Message] : Done." + ANSI_RESET);
@@ -137,10 +137,13 @@ public class User implements RMIClient{
     @Override
     public  void CLiNotify(String TopicLabel, String TriggeredBy, boolean type) throws RemoteException {
         CheckConnection();
-        // notifier.add(TopicLabel);
-        if(type) System.out.println("_NP_"+" "+TriggeredBy+" "+TopicLabel);
-        else System.out.println("_NT_"+" "+TriggeredBy+" "+TopicLabel);
-        ChargeData();
+        if (TopicLabel.equals("TestInvoke")) System.out.println("\t"+username+"SUCCESSFUL CONNECTION");
+        else {
+            // notifier.add(TopicLabel);
+            if (type) System.out.println("_NP_" + " " + TriggeredBy + " " + TopicLabel);
+            else System.out.println("_NT_" + " " + TriggeredBy + " " + TopicLabel);
+            ChargeData();
+        }
     }
 
 
@@ -186,7 +189,9 @@ public class User implements RMIClient{
                 tempuser.SubscribeRequest("HelpCenter", "subscribe");
                 tempuser.PublishRequest(tempuser.GetUsername()+" is not a program created by rollingflamingo....", "HelpCenter");
                 sleep(abs(new Random().nextInt()%1000));
+                System.err.println("\t\tDisconnection attempt for "+tempuser.GetUsername());
                 tempuser.disconnect();
+                System.err.println("\t\tDisconnect attempt for "+tempuser.GetUsername()+" successful");
             } catch (UnknownHostException e) {
                 e.printStackTrace();
             } catch (RemoteException e) {
