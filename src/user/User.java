@@ -165,6 +165,8 @@ public class User implements RMIClient{
         return ServerTopics;
     }
 
+    public String getHost(){ return host;}
+
     /*      Debugging function     */
     private void PrintMap(){
         for(String k :  ServerTopics.ListTopicName()){
@@ -186,8 +188,16 @@ public class User implements RMIClient{
             try {
                 User tempuser = new User(address);
                 tempuser.ConnectionRequest(address, "client_"+clinum, "1234");
-                tempuser.SubscribeRequest("HelpCenter", "subscribe");
-                tempuser.PublishRequest(tempuser.GetUsername()+" is not a program created by rollingflamingo....", "HelpCenter");
+                //tempuser.SubscribeRequest("HelpCenter", "subscribe");
+                if(tempuser.AddTopicRequest(tempuser.username+" Topic")){
+                    System.err.println("Added");
+                    tempuser.SubscribeRequest(tempuser.username+" Topic", "subscribe");
+                    tempuser.PublishRequest(tempuser.GetUsername()+" Hello world!", tempuser.username+" Topic");
+                }
+                else {
+                    System.err.println("Topic refused. Exit");
+                }
+               // tempuser.PublishRequest(tempuser.GetUsername()+" is not a program created by rollingflamingo....", "HelpCenter");
                 sleep(abs(new Random().nextInt()%1000));
                 System.err.println("\t\tDisconnection attempt for "+tempuser.GetUsername());
                 tempuser.disconnect();
@@ -215,6 +225,11 @@ public class User implements RMIClient{
         User anotherUser = new User(args[0]);
         if(anotherUser.ConnectionRequest(args[1], "andreo", "1234"))System.err.println("Connected");
         if(anotherUser.AddTopicRequest("HelpCenter")) System.err.println("Added");
+        else {
+            System.err.println("Topic refused. Exit");
+            System.exit(0);
+        }
+
         if(anotherUser.disconnect())System.err.println("Disconnected");
 
         System.out.println("Starting multi request:");
