@@ -5,6 +5,7 @@ import RMICore.*;
 import java.net.UnknownHostException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.*;
 
 
@@ -14,8 +15,8 @@ import static java.lang.Math.abs;
 public class User implements RMIClient{
     //  public Registry pushRegistry; /* Registry used for pushing remote method */ INTERNO NELLA CLASSE RMIUtility, non viene mai chiamato...
     public RMIServerInterface ServerConnected;
+    private RMIClient stub;
     private boolean connected = false;
-    private int myListeningPort;
     private final int serverPort = 1969;
     private String host = "none";
     private String username;
@@ -46,6 +47,18 @@ public class User implements RMIClient{
         }*/
     }
 
+    private void exportStub(){
+        int port = 1099;
+        while(true) {
+            try {
+                stub = (RMIClient) UnicastRemoteObject.exportObject(this, port);
+                break;
+            } catch (RemoteException e) {
+                port++;
+            }
+        }
+    }
+
     private void ChargeData() throws RemoteException{
         CheckConnection();
         System.out.println(ANSI_BLUE+ "[Client Message] : Trying to fetching data from the server....."+ANSI_RESET);
@@ -68,13 +81,14 @@ public class User implements RMIClient{
             System.err.println("[Client Error Message] : You are already connected");
             return false;
         }
-        myListeningPort = ClientHandler.serverSetUp(this, host);
+
         System.out.println(ANSI_BLUE+"[Client Message] : Trying to connect to the server " + Serverhost + " ..."+ANSI_RESET);
         username = user;
         password = psw;
         try {
+            exportStub();
             ServerConnected = (RMIServerInterface) ClientHandler.getRemoteMethod(Serverhost,serverPort);
-            Errorstatus = ServerConnected.ManageConnection(user, psw, this.host, myListeningPort, "connect");
+            Errorstatus = ServerConnected.ManageConnection(user, psw, stub, "connect");
             if(Errorstatus.equals(RMIServerInterface.ConnResponse.Success)) {
                 connected = true;
                 System.out.println(ANSI_BLUE+"[Client Message] : Done."+ANSI_RESET);
@@ -91,15 +105,13 @@ public class User implements RMIClient{
         System.out.println(ANSI_BLUE+"[Client Message] : Trying to disconnect from the server..."+ANSI_RESET);
         CheckConnection();
         try {
-            Errorstatus = ServerConnected.ManageConnection(username, password, this.host, myListeningPort, "disconnect");
+            Errorstatus = ServerConnected.ManageConnection(username, password, stub, "disconnect");
             if(Errorstatus == RMIServerInterface.ConnResponse.Success) {
                 connected = false;
-                ClientHandler.RMIshutDown(this);
+                UnicastRemoteObject.unexportObject(this , false);
                 System.out.println(ANSI_BLUE + "["+username+" Message] : Done." + ANSI_RESET);
                 return true;
             }else CheckError();
-        }catch (NotBoundException e) {
-            e.printStackTrace();
         } catch (RemoteException e) {
             e.printStackTrace();
         }
@@ -197,7 +209,7 @@ public class User implements RMIClient{
                 else {
                     System.err.println("Topic refused. Exit");
                 }
-               // tempuser.PublishRequest(tempuser.GetUsername()+" is not a program created by rollingflamingo....", "HelpCenter");
+                // tempuser.PublishRequest(tempuser.GetUsername()+" is not a program created by rollingflamingo....", "HelpCenter");
                 sleep(abs(new Random().nextInt()%1000));
                 System.err.println("\t\tDisconnection attempt for "+tempuser.GetUsername());
                 tempuser.disconnect();
