@@ -64,7 +64,7 @@ public class RMIServer implements RMIServerInterface {
 
     @Override
     public boolean ManageSubscribe(String TopicLabel, String User, boolean unsubscribe) throws RemoteException {
-        printDebug("["+User+"] wants to "+(unsubscribe?"subscribe to ":"unsubscribe from ")+" ["+TopicLabel+"]: ");
+        printDebug("["+User+"] wants to "+(!unsubscribe?"subscribe to ":"unsubscribe from ")+" ["+TopicLabel+"]: ");
         if(!Topics.contains(TopicLabel)){
             printDebug("No such topic...");
             return false;
