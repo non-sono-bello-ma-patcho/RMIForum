@@ -11,9 +11,9 @@ import java.rmi.RemoteException;
 public class BrokerClass extends RMIServer {
     private User clientSide;
 
-    public BrokerClass(String address) throws UnknownHostException {
-        super(address);
-        clientSide = new User(address);
+    public BrokerClass() throws UnknownHostException {
+        super();
+        clientSide = new User();
     }
 
     /*-- Server Side --*/
@@ -29,8 +29,8 @@ public class BrokerClass extends RMIServer {
     */
 
 
-    public void start(){
-        super.start();
+    public void start(String address){
+        super.start(address);
     }
 
     public void shutdown(){

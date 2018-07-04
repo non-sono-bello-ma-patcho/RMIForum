@@ -31,8 +31,7 @@ public class User implements RMIClient{
 
     /*     constructor    */
 
-    public User(String myHost) throws UnknownHostException {
-        host = myHost;
+    public User() throws UnknownHostException {
         ClientHandler = new RMIUtility(1099,"RMISharedClient","RMISharedServer");
         ServerTopics = new TopicList();
         TopicsMessages = new HashMap<>();
@@ -198,7 +197,7 @@ public class User implements RMIClient{
         @Override
         public void run(){
             try {
-                User tempuser = new User(address);
+                User tempuser = new User();
                 tempuser.ConnectionRequest(address, "client_"+clinum, "1234");
                 //tempuser.SubscribeRequest("HelpCenter", "subscribe");
                 if(tempuser.AddTopicRequest(tempuser.username+" Topic")){
@@ -229,12 +228,12 @@ public class User implements RMIClient{
 
         /* end messages */
         // TODO: modify constructor so that the localhost is passed as a parameter (this works only on loopback...)
-        User myUser = new User(args[0]);
+        User myUser = new User();
 
         myUser.PrintMap();
 
 
-        User anotherUser = new User(args[0]);
+        User anotherUser = new User();
         if(anotherUser.ConnectionRequest(args[1], "andreo", "1234"))System.err.println("Connected");
         if(anotherUser.AddTopicRequest("HelpCenter")) System.err.println("Added");
         else {
