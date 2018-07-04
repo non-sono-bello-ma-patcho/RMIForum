@@ -1,8 +1,6 @@
 package RMIForum.Server;
 
 import RMIForum.RMICore.*;
-
-import java.rmi.ConnectException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
@@ -14,9 +12,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 public class RMIServer implements RMIServerInterface {
-    private TopicList Topics; //
+    private TopicList Topics;
     private ConcurrentHashMap<String, RMIClient> ClientList; // TODO: to wrap into a class;
-    private ConcurrentHashMap<String, String> Credential; // TODO: incorporate into clientlist class...
     private PoolClass pool;
     private String myHost;
     private RMIUtility serverHandler;
@@ -27,44 +24,33 @@ public class RMIServer implements RMIServerInterface {
     public RMIServer(String Host) {
         Topics = new TopicList();
         ClientList = new ConcurrentHashMap<>();
-        Credential = new ConcurrentHashMap<>();
         pool = new PoolClass();
         serverHandler = new RMIUtility(1969, "RMISharedServer", "RMISharedClient");
         myHost = Host;
     }
 
     @Override
-    public ConnResponse ManageConnection(String username, String password, String address, int port, String op) throws RemoteException {
+    public ConnResponse ManageConnection(String username, RMIClient stub, String op) throws RemoteException {
         switch (op) {
             case "connect":
                 if (ClientList.containsKey(username)) return ConnResponse.AlreadyExist;
-                System.err.println("Adding [" + username + "] to Users!");
+                printDebug("Adding [" + username + "] to Users!");
                 // init conversation with client...
+                printDebug("Trying to retrieve stub from "+username);
+                ClientList.putIfAbsent(username, stub);
+
                 try {
-                    System.err.println("Trying to retrieve methods from " + address);
-                    RMIClient stub = (RMIClient) serverHandler.getRemoteMethod(address, port);
-                    System.err.println("DONE");
-                    Credential.putIfAbsent(username, password);
-                    ClientList.putIfAbsent(username, stub);
-                } catch (ConnectException e) {
-                    System.err.println("Host hasn't set its policy...");
-                    kickUser(username);
-                    return ConnResponse.UnsetPolicy;
-                }catch (RemoteException e) {
-                    System.err.println("Impossible to retrieve stub from client...");
-                    kickUser(username);
-                    return ConnResponse.NoSuchObject;
-                } catch (NotBoundException e) {
-                    System.err.println("Looks like there no shared object on that server...");
-                    kickUser(username);
-                    return ConnResponse.NoSuchObject;
+                    ClientList.get(username).CLiNotify("TestInvoke", "Server", true);
+                } catch (NullPointerException e){
+                    System.err.println("Connection failed...");
+                    return ConnResponse.NoSuchUser;
                 }
 
                 break;
             case "disconnect":
                 if (!ClientList.containsKey(username)) return ConnResponse.NoSuchUser;
-                System.err.print("Removing [" + username + "] from Users:");
-                kickUser(username);
+                printDebug("Removing [" + username + "] from Users:");
+                System.err.println(username + (kickUser(username)?" removed" : " not removed"));
                 break;
         }
         return ConnResponse.Success;
@@ -72,7 +58,7 @@ public class RMIServer implements RMIServerInterface {
 
     @Override
     public boolean ManageSubscribe(String TopicLabel, String User, boolean unsubscribe) throws RemoteException {
-        printDebug("["+User+"] wants to "+(unsubscribe?"subscribe to ":"unsubscribe from ")+" ["+TopicLabel+"]: ");
+        printDebug("["+User+"] wants to "+(!unsubscribe?"subscribe to ":"unsubscribe from ")+" ["+TopicLabel+"]: ");
         if(!Topics.contains(TopicLabel)){
             printDebug("No such topic...");
             return false;
@@ -98,10 +84,14 @@ public class RMIServer implements RMIServerInterface {
     @Override
     public boolean ManageAddTopic(String TopicName, String TopicOwner) throws RemoteException {
         if(Topics.contains(TopicName)) return false;
-        System.err.println("Adding ["+TopicName+"] to Topics!");
+        printDebug("Adding ["+TopicName+"] to Topics!");
         Topics.put(new TopicClass(TopicName, TopicOwner));
         Notify(TopicName, TopicOwner, false);
         return true;
+    }
+
+    public boolean removeMessage(String TopicLabel, String message){
+        return Topics.getTopicNamed(TopicLabel).removeMessage(message);
     }
 
     public static void printInfo(RMIServer rs){ /*should it be right for the client class too?*/
@@ -120,8 +110,7 @@ public class RMIServer implements RMIServerInterface {
     }
 
     public boolean kickUser(String user){
-        if(!Credential.containsKey(user)||!ClientList.containsKey(user)) return false;
-        Credential.remove(user);
+        if(!ClientList.containsKey(user)) return false;
         ClientList.remove(user);
         return true;
     }
@@ -129,10 +118,11 @@ public class RMIServer implements RMIServerInterface {
     public boolean removeTopic(String TopicLabel){
         if(!Topics.contains(TopicLabel)) return false;
         Topics.remove(TopicLabel);
+        // TODO: notify clients you removed the topic...
         return true;
     }
 
-    public void Notify(String TopicLabel, String TriggeredBy, boolean type) throws RemoteException {
+    private void Notify(String TopicLabel, String TriggeredBy, boolean type) throws RemoteException {
         List<Future<String>> response = new ArrayList<>(ClientList.size());
         for (String s : ClientList.keySet()) {
             if (Topics.getTopicNamed(TopicLabel).hasUser(s) || !type) { // notify only if a topic has been added or the user is subscribed...
@@ -186,11 +176,11 @@ public class RMIServer implements RMIServerInterface {
         System.err.println(ANSI_BLUE+"[Debug]: "+text+ANSI_RESET);
     }
 
-    class notifyHandler implements Callable {
+    class notifyHandler implements Callable<String> {
         String username, topiclabel, triggeredby;
         boolean type;
         RMIClient stub;
-        public notifyHandler(String user, RMIClient userstub, String tl, String tb, boolean t){
+        private notifyHandler(String user, RMIClient userstub, String tl, String tb, boolean t){
             username = user;
             stub = userstub;
             topiclabel = tl;

@@ -5,6 +5,7 @@ import RMIForum.RMICore.*;
 import java.net.UnknownHostException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.*;
 
 
@@ -14,8 +15,8 @@ import static java.lang.Math.abs;
 public class User implements RMIClient{
     //  public Registry pushRegistry; /* Registry used for pushing remote method */ INTERNO NELLA CLASSE RMIUtility, non viene mai chiamato...
     public RMIServerInterface ServerConnected;
+    private RMIClient stub;
     private boolean connected = false;
-    private int myListeningPort;
     private final int serverPort = 1969;
     private String host = "none";
     private String username;
@@ -40,9 +41,21 @@ public class User implements RMIClient{
 
     /*    auxiliary functions   */
     public void CheckConnection(){
-        if(!connected){
+        /*if(!connected){
             System.err.println("[Client Error Message] : NotConnected");
             System.exit(-1); //lo lascio, poichè l'errore della connessione viene gestito altrove. questo è un caso partcolare.
+        }*/
+    }
+
+    private void exportStub(){
+        int port = 1099;
+        while(true) {
+            try {
+                stub = (RMIClient) UnicastRemoteObject.exportObject(this, port);
+                break;
+            } catch (RemoteException e) {
+                port++;
+            }
         }
     }
 
@@ -58,7 +71,7 @@ public class User implements RMIClient{
     }
 
     private void CheckError(){
-        System.err.println("[Client Error Message] : "+Errorstatus.toString());
+        System.err.println("["+username+" Error Message]: "+Errorstatus.toString());
     }
 
     /*              Principal functions           */
@@ -68,13 +81,14 @@ public class User implements RMIClient{
             System.err.println("[Client Error Message] : You are already connected");
             return false;
         }
-        myListeningPort = ClientHandler.serverSetUp(this, host);
+
         System.out.println(ANSI_BLUE+"[Client Message] : Trying to connect to the server " + Serverhost + " ..."+ANSI_RESET);
         username = user;
         password = psw;
         try {
+            exportStub();
             ServerConnected = (RMIServerInterface) ClientHandler.getRemoteMethod(Serverhost,serverPort);
-            Errorstatus = ServerConnected.ManageConnection(user, psw, this.host, myListeningPort, "connect");
+            Errorstatus = ServerConnected.ManageConnection(user, stub, "connect");
             if(Errorstatus.equals(RMIServerInterface.ConnResponse.Success)) {
                 connected = true;
                 System.out.println(ANSI_BLUE+"[Client Message] : Done."+ANSI_RESET);
@@ -91,18 +105,17 @@ public class User implements RMIClient{
         System.out.println(ANSI_BLUE+"[Client Message] : Trying to disconnect from the server..."+ANSI_RESET);
         CheckConnection();
         try {
-            if(ServerConnected.ManageConnection(username, password, this.host, myListeningPort, "disconnect").equals(RMIServerInterface.ConnResponse.Success)) {
+            Errorstatus = ServerConnected.ManageConnection(username, stub, "disconnect");
+            if(Errorstatus == RMIServerInterface.ConnResponse.Success) {
                 connected = false;
-                ClientHandler.RMIshutDown(this);
+                UnicastRemoteObject.unexportObject(this , false);
                 System.out.println(ANSI_BLUE + "["+username+" Message] : Done." + ANSI_RESET);
                 return true;
             }else CheckError();
-        }catch (NotBoundException e) {
-            e.printStackTrace();
         } catch (RemoteException e) {
             e.printStackTrace();
         }
-        return true;
+        return false;
     }
 
     public boolean SubscribeRequest(String TopicName, String op) throws RemoteException {
@@ -115,7 +128,7 @@ public class User implements RMIClient{
                 System.out.println(ANSI_BLUE+"[Client Message] : Trying to unsubscribe to : "+TopicName+"..."+ANSI_RESET);
                 return ServerConnected.ManageSubscribe(TopicName,username,true);
             default:
-                System.err.println("[Client Error Message] : invalid operation");
+                System.err.println("["+username+" Error Message] : invalid operation");
         }
         return false;
     }
@@ -136,10 +149,13 @@ public class User implements RMIClient{
     @Override
     public  void CLiNotify(String TopicLabel, String TriggeredBy, boolean type) throws RemoteException {
         CheckConnection();
-        // notifier.add(TopicLabel);
-        if(type) System.out.println("_NP_"+" "+TriggeredBy+" "+TopicLabel);
-        else System.out.println("_NT_"+" "+TriggeredBy+" "+TopicLabel);
-        ChargeData();
+        if (TopicLabel.equals("TestInvoke")) System.out.println("\t"+username+"SUCCESSFUL CONNECTION");
+        else {
+            // notifier.add(TopicLabel);
+            if (type) System.out.println("_NP_" + " " + TriggeredBy + " " + TopicLabel);
+            else System.out.println("_NT_" + " " + TriggeredBy + " " + TopicLabel);
+            ChargeData();
+        }
     }
 
 
@@ -160,6 +176,8 @@ public class User implements RMIClient{
     public TopicList getServerTopics(){
         return ServerTopics;
     }
+
+    public String getHost(){ return host;}
 
     /*      Debugging function     */
     private void PrintMap(){
@@ -182,10 +200,20 @@ public class User implements RMIClient{
             try {
                 User tempuser = new User(address);
                 tempuser.ConnectionRequest(address, "client_"+clinum, "1234");
-                tempuser.SubscribeRequest("HelpCenter", "subscribe");
-                tempuser.PublishRequest(tempuser.GetUsername()+" is not a program created by rollingflamingo....", "HelpCenter");
+                //tempuser.SubscribeRequest("HelpCenter", "subscribe");
+                if(tempuser.AddTopicRequest(tempuser.username+" Topic")){
+                    System.err.println("Added");
+                    tempuser.SubscribeRequest(tempuser.username+" Topic", "subscribe");
+                    tempuser.PublishRequest(tempuser.GetUsername()+" Hello world!", tempuser.username+" Topic");
+                }
+                else {
+                    System.err.println("Topic refused. Exit");
+                }
+                // tempuser.PublishRequest(tempuser.GetUsername()+" is not a program created by rollingflamingo....", "HelpCenter");
                 sleep(abs(new Random().nextInt()%1000));
+                System.err.println("\t\tDisconnection attempt for "+tempuser.GetUsername());
                 tempuser.disconnect();
+                System.err.println("\t\tDisconnect attempt for "+tempuser.GetUsername()+" successful");
             } catch (UnknownHostException e) {
                 e.printStackTrace();
             } catch (RemoteException e) {
@@ -208,6 +236,12 @@ public class User implements RMIClient{
 
         User anotherUser = new User(args[0]);
         if(anotherUser.ConnectionRequest(args[1], "andreo", "1234"))System.err.println("Connected");
+        if(anotherUser.AddTopicRequest("HelpCenter")) System.err.println("Added");
+        else {
+            System.err.println("Topic refused. Exit");
+            System.exit(0);
+        }
+
         if(anotherUser.disconnect())System.err.println("Disconnected");
 
         System.out.println("Starting multi request:");
@@ -219,8 +253,8 @@ public class User implements RMIClient{
         }
 
         for(int i=0; i< threads.length; i++){
-            threads[i].join();
+            threads[i].join(1000);
         }
-        // System.exit(0);
+        System.exit(0);
     }
 }
