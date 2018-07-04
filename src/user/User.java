@@ -88,7 +88,7 @@ public class User implements RMIClient{
         try {
             exportStub();
             ServerConnected = (RMIServerInterface) ClientHandler.getRemoteMethod(Serverhost,serverPort);
-            Errorstatus = ServerConnected.ManageConnection(user, psw, stub, "connect");
+            Errorstatus = ServerConnected.ManageConnection(user, stub, "connect");
             if(Errorstatus.equals(RMIServerInterface.ConnResponse.Success)) {
                 connected = true;
                 System.out.println(ANSI_BLUE+"[Client Message] : Done."+ANSI_RESET);
@@ -105,7 +105,7 @@ public class User implements RMIClient{
         System.out.println(ANSI_BLUE+"[Client Message] : Trying to disconnect from the server..."+ANSI_RESET);
         CheckConnection();
         try {
-            Errorstatus = ServerConnected.ManageConnection(username, password, stub, "disconnect");
+            Errorstatus = ServerConnected.ManageConnection(username, stub, "disconnect");
             if(Errorstatus == RMIServerInterface.ConnResponse.Success) {
                 connected = false;
                 UnicastRemoteObject.unexportObject(this , false);

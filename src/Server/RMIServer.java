@@ -34,30 +34,14 @@ public class RMIServer implements RMIServerInterface {
     }
 
     @Override
-    public ConnResponse ManageConnection(String username, String password, String address, int port, String op) throws RemoteException {
+    public ConnResponse ManageConnection(String username, RMIClient stub, String op) throws RemoteException {
         switch (op) {
             case "connect":
                 if (ClientList.containsKey(username)) return ConnResponse.AlreadyExist;
                 printDebug("Adding [" + username + "] to Users!");
                 // init conversation with client...
-                try {
-                    printDebug("Trying to retrieve methods from " + address);
-                    RMIClient stub = (RMIClient) serverHandler.getRemoteMethod(address, port);
-                    ClientList.putIfAbsent(username, stub);
-                    Credential.putIfAbsent(username, password);
-                } catch (ConnectException e) {
-                    printDebug("Host hasn't set its policy...");
-                    kickUser(username);
-                    return ConnResponse.UnsetPolicy;
-                }catch (RemoteException e) {
-                    printDebug("Impossible to retrieve stub from client...");
-                    kickUser(username);
-                    return ConnResponse.NoSuchObject;
-                } catch (NotBoundException e) {
-                    printDebug("Looks like there no shared object on that server...");
-                    kickUser(username);
-                    return ConnResponse.NoSuchObject;
-                }
+                printDebug("Trying to retrieve stub from "+username);
+                ClientList.putIfAbsent(username, stub);
 
                 printDebug("Added! Checking presence by calling notify on it");
                 for(String s : ClientList.keySet()) System.err.println(s);
