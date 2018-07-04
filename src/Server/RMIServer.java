@@ -16,7 +16,6 @@ import java.util.concurrent.Future;
 public class RMIServer implements RMIServerInterface {
     private TopicList Topics;
     private ConcurrentHashMap<String, RMIClient> ClientList; // TODO: to wrap into a class;
-    private ConcurrentHashMap<String, String> Credential; // TODO: incorporate into clientlist class...
     private PoolClass pool;
     private String myHost;
     private RMIUtility serverHandler;
@@ -27,7 +26,6 @@ public class RMIServer implements RMIServerInterface {
     public RMIServer(String Host) {
         Topics = new TopicList();
         ClientList = new ConcurrentHashMap<>();
-        Credential = new ConcurrentHashMap<>();
         pool = new PoolClass();
         serverHandler = new RMIUtility(1969, "RMISharedServer", "RMISharedClient");
         myHost = Host;
@@ -118,8 +116,7 @@ public class RMIServer implements RMIServerInterface {
     }
 
     public boolean kickUser(String user){
-        if(!Credential.containsKey(user)||!ClientList.containsKey(user)) return false;
-        Credential.remove(user);
+        if(!ClientList.containsKey(user)) return false;
         ClientList.remove(user);
         return true;
     }
