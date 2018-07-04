@@ -16,18 +16,16 @@ public class RMIServer implements RMIServerInterface {
     private TopicList Topics;
     private ConcurrentHashMap<String, RMIClient> ClientList; // TODO: to wrap into a class;
     private PoolClass pool;
-    private String myHost;
     private RMIUtility serverHandler;
     private static final String ANSI_GREEN = "\u001B[32m";
     private static final String ANSI_BLUE = "\u001B[34m";
     private static final String ANSI_RESET = "\u001B[0m";
 
-    public RMIServer(String Host) {
+    public RMIServer() {
         Topics = new TopicList();
         ClientList = new ConcurrentHashMap<>();
         pool = new PoolClass();
         serverHandler = new RMIUtility(1969, "RMISharedServer", "RMISharedClient");
-        myHost = Host;
     }
 
     @Override
@@ -147,8 +145,8 @@ public class RMIServer implements RMIServerInterface {
         }
     }
 
-    public void start(){
-        serverHandler.serverSetUp(this, myHost);
+    public void start(String Host){
+        serverHandler.serverSetUp(this, Host);
     }
 
     public void shutDown() throws RemoteException, NotBoundException {
@@ -157,8 +155,8 @@ public class RMIServer implements RMIServerInterface {
     }
 
     public static void main(String [] args) {
-        RMIServer rs = new RMIServer(args[0]);
-        rs.start();
+        RMIServer rs = new RMIServer();
+        rs.start(args[0]);
         // here start the server...
         System.out.println("Type something to shutdown...");
         Scanner sc = new Scanner(System.in);

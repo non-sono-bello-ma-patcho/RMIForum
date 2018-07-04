@@ -11,9 +11,9 @@ import java.rmi.RemoteException;
 public class ServerTester extends RMIServer {
     private User clientSide;
 
-    public ServerTester(String address) throws UnknownHostException {
-        super(address);
-        clientSide = new User(address);
+    public ServerTester() throws UnknownHostException {
+        super();
+        clientSide = new User();
     }
 
     /*-- Server Side --*/
@@ -29,8 +29,8 @@ public class ServerTester extends RMIServer {
     */
 
 
-    public void start(){
-        super.start();
+    public void start(String address){
+        super.start(address);
     }
 
     public void shutdown(){
