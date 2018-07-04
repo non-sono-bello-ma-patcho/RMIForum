@@ -2,7 +2,6 @@ package Server;
 
 import RMICore.*;
 
-import java.rmi.ConnectException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
@@ -41,8 +40,6 @@ public class RMIServer implements RMIServerInterface {
                 printDebug("Trying to retrieve stub from "+username);
                 ClientList.putIfAbsent(username, stub);
 
-                printDebug("Added! Checking presence by calling notify on it");
-                for(String s : ClientList.keySet()) System.err.println(s);
                 try {
                     ClientList.get(username).CLiNotify("TestInvoke", "Server", true);
                 } catch (NullPointerException e){
@@ -52,11 +49,9 @@ public class RMIServer implements RMIServerInterface {
 
                 break;
             case "disconnect":
-                System.err.println("Utenti registrati prima della rimozione di "+username);
-                for(String s : ClientList.keySet()) System.err.println(s);
                 if (!ClientList.containsKey(username)) return ConnResponse.NoSuchUser;
                 printDebug("Removing [" + username + "] from Users:");
-                kickUser(username);
+                System.err.println(username + (kickUser(username)?" removed" : " not removed"));
                 break;
         }
         return ConnResponse.Success;
