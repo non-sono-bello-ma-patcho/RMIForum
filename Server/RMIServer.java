@@ -80,6 +80,11 @@ public class RMIServer implements RMIServerInterface {
         return Topics;
     }
 
+    public List<String> getConnectedUsers() {
+        return new ArrayList<>(ClientList.keySet());
+    } //todo: add in main repo.
+
+
     @Override
     public boolean ManageAddTopic(String TopicName, String TopicOwner) throws RemoteException {
         if(Topics.contains(TopicName)) return false;
