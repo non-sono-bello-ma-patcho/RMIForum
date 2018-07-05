@@ -3,10 +3,12 @@ package RMIForum.Broker;
 import RMIForum.RMICore.TopicList;
 import RMIForum.Server.RMIServer;
 import RMIForum.user.User;
+import parser.ast.Unsubscribe;
 
 import java.net.UnknownHostException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
+import java.util.List;
 
 public class BrokerClass extends RMIServer {
     private User clientSide;
@@ -46,18 +48,18 @@ public class BrokerClass extends RMIServer {
     }
 
     // client methods side //
-    public boolean ConnectionRequest(String username, String password) throws RemoteException {
-        return clientSide.ConnectionRequest(getHost(),username,password);
+    public boolean ConnectionRequest(String address, String username) throws RemoteException {
+        return clientSide.ConnectionRequest(address,username);
     }
 
     public boolean Disconnect(){
         return clientSide.disconnect();
     }
-
-    public boolean SubscribeRequest(String TopicName,String operation) throws RemoteException{
-        return clientSide.SubscribeRequest(TopicName,operation);
-    }
-
+    /*
+        public boolean SubscribeRequest(String TopicName,String operation) throws RemoteException{
+            return clientSide.SubscribeRequest(TopicName,operation);
+        }
+    */
     public boolean AddTopicRequest(String Topicname) throws RemoteException{
         return clientSide.AddTopicRequest(Topicname);
     }
@@ -70,6 +72,13 @@ public class BrokerClass extends RMIServer {
         clientSide.CLiNotify(TopicLabel,TriggeredBy,type);
     }
 
+    public boolean Subscribe(String topicLabel) throws RemoteException {
+        return clientSide.SubscribeRequest(topicLabel, "subscribe");
+    }
+
+    public boolean Unsubscribe(String topicLabel) throws RemoteException {
+        return clientSide.SubscribeRequest(topicLabel, "unsubscribe");
+    }
 
     // GETTERS //
 
