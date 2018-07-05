@@ -75,7 +75,7 @@ public class User implements RMIClient{
 
     /*              Principal functions           */
 
-    public  boolean ConnectionRequest(String Serverhost,String user,String psw) throws  RemoteException {
+    public  boolean ConnectionRequest(String Serverhost,String user) throws  RemoteException {
         if (connected){
             System.err.println("[Client Error Message] : You are already connected");
             return false;
@@ -83,7 +83,6 @@ public class User implements RMIClient{
 
         System.out.println(ANSI_BLUE+"[Client Message] : Trying to connect to the server " + Serverhost + " ..."+ANSI_RESET);
         username = user;
-        password = psw;
         try {
             exportStub();
             ServerConnected = (RMIServerInterface) ClientHandler.getRemoteMethod(Serverhost,serverPort);
