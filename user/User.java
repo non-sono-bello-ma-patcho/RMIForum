@@ -197,7 +197,7 @@ public class User implements RMIClient{
         public void run(){
             try {
                 User tempuser = new User();
-                tempuser.ConnectionRequest(address, "client_"+clinum, "1234");
+                tempuser.ConnectionRequest(address, "client_"+clinum);
                 //tempuser.SubscribeRequest("HelpCenter", "subscribe");
                 if(tempuser.AddTopicRequest(tempuser.username+" Topic")){
                     System.err.println("Added");
@@ -233,7 +233,7 @@ public class User implements RMIClient{
 
 
         User anotherUser = new User();
-        if(anotherUser.ConnectionRequest(args[1], "andreo", "1234"))System.err.println("Connected");
+        if(anotherUser.ConnectionRequest(args[1], "andreo"))System.err.println("Connected");
         if(anotherUser.AddTopicRequest("HelpCenter")) System.err.println("Added");
         else {
             System.err.println("Topic refused. Exit");
