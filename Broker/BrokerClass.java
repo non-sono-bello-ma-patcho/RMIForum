@@ -95,6 +95,10 @@ public class BrokerClass extends RMIServer {
     public TopicList getServerTopics(){
         return clientSide.getServerTopics();
     }
+    
+    public List<String> getConnectedUsers(){
+        return new ArrayList<String>(ClientList.keySet());
+    }
 
     public String getHost(){ return clientSide.getHost();}
 
