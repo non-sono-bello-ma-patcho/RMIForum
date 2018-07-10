@@ -14,7 +14,7 @@ import java.util.concurrent.Future;
 
 public class RMIServer implements RMIServerInterface {
     private TopicList Topics;
-    private ConcurrentHashMap<String, RMIClient> ClientList; // TODO: to wrap into a class;
+    protected ConcurrentHashMap<String, RMIClient> ClientList; // TODO: to wrap into a class;
     private PoolClass pool;
     private RMIUtility serverHandler;
     private static final String ANSI_GREEN = "\u001B[32m";
