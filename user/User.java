@@ -79,7 +79,11 @@ public class User implements RMIClient{
 
     private void CheckError(){
         ServerConnected = null;
-        UnicastRemoteObject.unexportObject(this , true);
+        try{
+            UnicastRemoteObject.unexportObject(this , true);
+        } catch(RemoteException e){
+            System.err.println("No object to unexport...");
+        }
         System.err.println("["+username+" Error Message]: "+Errorstatus.toString());
     }
 
