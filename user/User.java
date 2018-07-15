@@ -21,6 +21,7 @@ public class User implements RMIClient{
     private String host = "none";
     private String username;
     private String password;
+    private List<String> brokerID = null;
     private RMIUtility ClientHandler;
     private TopicList ServerTopics;
     private HashMap<String, List<MessageClass>> TopicsMessages;
@@ -35,6 +36,13 @@ public class User implements RMIClient{
         ClientHandler = new RMIUtility(1099,"RMISharedClient","RMISharedServer");
         ServerTopics = new TopicList();
         TopicsMessages = new HashMap<>();
+    }
+
+    public User(List<String> b) throws UnknownHostException {
+        ClientHandler = new RMIUtility(1099,"RMISharedClient","RMISharedServer");
+        ServerTopics = new TopicList();
+        TopicsMessages = new HashMap<>();
+        brokerID = b;
     }
 
 
@@ -86,7 +94,7 @@ public class User implements RMIClient{
         try {
             exportStub();
             ServerConnected = (RMIServerInterface) ClientHandler.getRemoteMethod(Serverhost,serverPort);
-            Errorstatus = ServerConnected.ManageConnection(user, stub, "connect");
+            Errorstatus = ServerConnected.ManageConnection(user, stub, brokerID,"connect");
             if(Errorstatus.equals(RMIServerInterface.ConnResponse.Success)) {
                 connected = true;
                 System.out.println(ANSI_BLUE+"[Client Message] : Done."+ANSI_RESET);
@@ -103,7 +111,7 @@ public class User implements RMIClient{
         System.out.println(ANSI_BLUE+"[Client Message] : Trying to disconnect from the server..."+ANSI_RESET);
         CheckConnection();
         try {
-            Errorstatus = ServerConnected.ManageConnection(username, stub, "disconnect");
+            Errorstatus = ServerConnected.ManageConnection(username, stub, brokerID, "disconnect");
             if(Errorstatus == RMIServerInterface.ConnResponse.Success) {
                 connected = false;
                 UnicastRemoteObject.unexportObject(this , false);
@@ -176,6 +184,7 @@ public class User implements RMIClient{
     }
 
     public String getHost(){ return host;}
+
 
     /*      Debugging function     */
     private void PrintMap(){
