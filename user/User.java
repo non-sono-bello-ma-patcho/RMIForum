@@ -49,7 +49,7 @@ public class User implements RMIClient{
     /*    auxiliary functions   */
     public void CheckConnection(){
         if(!connected){
-            System.err.println("[Client Error Message] : NotConnected");
+            printDebug("NotConnected");
             // System.exit(-1); //lo lascio, poichè l'errore della connessione viene gestito altrove. questo è un caso partcolare.
         }
     }
@@ -68,13 +68,12 @@ public class User implements RMIClient{
 
     private void ChargeData() throws RemoteException{
         CheckConnection();
-        System.out.println(ANSI_BLUE+ "[Client Message] : Trying to fetching data from the server....."+ANSI_RESET);
+        printDebug("Trying to fetch data from server.....");
         ServerTopics = ServerConnected.getTopics();
         for(String k : ServerTopics.ListTopicName()) {
             if (TopicsMessages.containsKey(k)) TopicsMessages.replace(k, ServerTopics.getTopicNamed(k).getConversation());
             else TopicsMessages.put(k, ServerTopics.getTopicNamed(k).getConversation());
         }
-        System.out.println(ANSI_BLUE+"[Client Message] : Done."+ANSI_RESET);
     }
 
     private void CheckError(){
@@ -82,20 +81,20 @@ public class User implements RMIClient{
         try{
             UnicastRemoteObject.unexportObject(this , true);
         } catch(RemoteException e){
-            System.err.println("No object to unexport...");
+            printDebug("No object to unexport...");
         }
-        System.err.println("["+username+" Error Message]: "+Errorstatus.toString());
+        printDebug("["+username+" Error Message]: "+Errorstatus.toString());
     }
 
     /*              Principal functions           */
 
     public  boolean ConnectionRequest(String Serverhost,String user) throws  RemoteException {
         if (connected){
-            System.err.println("[Client Error Message] : You are already connected");
+            printDebug("You are already connected");
             return false;
         }
 
-        System.out.println(ANSI_BLUE+"[Client Message] : Trying to connect to the server " + Serverhost + " ..."+ANSI_RESET);
+        printDebug("Trying to connect to the server " + Serverhost);
         username = user;
         try {
             exportStub();
@@ -103,7 +102,6 @@ public class User implements RMIClient{
             Errorstatus = ServerConnected.ManageConnection(user, stub, brokerID,"connect");
             if(Errorstatus.equals(RMIServerInterface.ConnResponse.Success)) {
                 connected = true;
-                System.out.println(ANSI_BLUE+"[Client Message] : Done."+ANSI_RESET);
                 ChargeData();
             } else  CheckError();
             return connected;
@@ -114,7 +112,7 @@ public class User implements RMIClient{
     }
 
     public boolean disconnect(){
-        System.out.println(ANSI_BLUE+"[Client Message] : Trying to disconnect from the server..."+ANSI_RESET);
+        printDebug("Trying to disconnect from server...");
         CheckConnection();
         if(!connected) return false;
         try {
@@ -122,7 +120,6 @@ public class User implements RMIClient{
             if(Errorstatus == RMIServerInterface.ConnResponse.Success) {
                 connected = false;
                 UnicastRemoteObject.unexportObject(this , false);
-                System.out.println(ANSI_BLUE + "["+username+" Message] : Done." + ANSI_RESET);
                 return true;
             }else CheckError();
         } catch (RemoteException e) {
@@ -136,26 +133,26 @@ public class User implements RMIClient{
         if(!connected) return false;
         switch(op){
             case "subscribe":
-                System.out.println(ANSI_BLUE+"[Client Message] : Trying to subscribe to : "+TopicName+"..."+ANSI_RESET);
+               printDebug("Trying to subscribe to : "+TopicName);
                 return ServerConnected.ManageSubscribe(TopicName,username,false);
             case "unsubscribe":
-                System.out.println(ANSI_BLUE+"[Client Message] : Trying to unsubscribe to : "+TopicName+"..."+ANSI_RESET);
+                printDebug("Trying to unsubscribe to : "+TopicName);
                 return ServerConnected.ManageSubscribe(TopicName,username,true);
             default:
-                System.err.println("["+username+" Error Message] : invalid operation");
+                printDebug("Invalid operation");
         }
         return false;
     }
 
     public boolean AddTopicRequest(String TopicName) throws RemoteException {
-        System.out.println(ANSI_BLUE+"[Client Message] : Trying to add the topic : "+TopicName+"..."+ANSI_RESET);
+        printDebug("Trying to add topic : "+TopicName);
         if(!connected) return false;
         CheckConnection();
         return ServerConnected.ManageAddTopic(TopicName, username);
     }
 
     public boolean PublishRequest(String text, String TopicName) throws RemoteException {
-        System.out.println(ANSI_BLUE+"[Client Message] : Trying to send the message on : "+TopicName+"..."+ANSI_RESET);
+        printDebug("Trying to send message to: "+TopicName);
         CheckConnection();
         if(!connected) return false;
         return ServerConnected.ManagePublish(new MessageClass(username,text),TopicName);
@@ -202,6 +199,10 @@ public class User implements RMIClient{
             for(MessageClass m : TopicsMessages.get(k))
                 System.out.println("                          "+"["+m.getUser()+"] : "+m.getText());
         }
+    }
+
+    private void printDebug(String s){
+        System.err.println("[ClientDebug]: "+text);
     }
 
     private static class clientRequestConnection extends Thread{

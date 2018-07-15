@@ -198,7 +198,7 @@ public class RMIServer implements RMIServerInterface {
     }
 
     private void printDebug(String text){
-        System.err.println(ANSI_BLUE+"[ServerDebug]: "+text+ANSI_RESET);
+        System.err.println("[ServerDebug]: "+text);
     }
 
     class notifyHandler implements Callable<String> {
