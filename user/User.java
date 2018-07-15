@@ -202,7 +202,7 @@ public class User implements RMIClient{
     }
 
     private void printDebug(String s){
-        System.err.println("[ClientDebug]: "+text);
+        System.err.println("[ClientDebug]: "+s);
     }
 
     private static class clientRequestConnection extends Thread{
