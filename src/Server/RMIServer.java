@@ -121,7 +121,7 @@ public class RMIServer implements RMIServerInterface {
         return true;
     }
 
-    private void Notify(String TopicLabel, String TriggeredBy, boolean type) throws RemoteException {
+    public void Notify(String TopicLabel, String TriggeredBy, boolean type) throws RemoteException {
         List<Future<String>> response = new ArrayList<>(ClientList.size());
         for (String s : ClientList.keySet()) {
             if (Topics.getTopicNamed(TopicLabel).hasUser(s) || !type) { // notify only if a topic has been added or the user is subscribed...
