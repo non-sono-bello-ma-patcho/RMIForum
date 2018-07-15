@@ -15,6 +15,7 @@ import java.util.concurrent.Future;
 public class RMIServer implements RMIServerInterface {
     private TopicList Topics;
     protected ConcurrentHashMap<String, RMIClient> ClientList; // TODO: to wrap into a class;
+    private List<String> ChildrenIDs;
     private PoolClass pool;
     private RMIUtility serverHandler;
     private static final String ANSI_GREEN = "\u001B[32m";
@@ -25,11 +26,31 @@ public class RMIServer implements RMIServerInterface {
         Topics = new TopicList();
         ClientList = new ConcurrentHashMap<>();
         pool = new PoolClass();
+        ChildrenIDs = new ArrayList<>();
         serverHandler = new RMIUtility(1969, "RMISharedServer", "RMISharedClient");
     }
 
+    public void ListFiller(List<String> l){
+        for(String s : l){
+            ChildrenIDs.add(s);
+        }
+    }
+
+    public boolean isNotChild(List<String> l){
+        for(String s : l)
+            if(ChildrenIDs.contains(s))
+                return false;
+        return true;
+
+    }
+
+    public void removeIds(List<String> l){
+        for(String s : l)
+            ChildrenIDs.remove(s);
+    }
+
     @Override
-    public ConnResponse ManageConnection(String username, RMIClient stub, String op) throws RemoteException {
+    public ConnResponse ManageConnection(String username, RMIClient stub, List<String>BrokerID,String op) throws RemoteException {
         switch (op) {
             case "connect":
                 if (ClientList.containsKey(username)) return ConnResponse.AlreadyExist;
@@ -37,6 +58,11 @@ public class RMIServer implements RMIServerInterface {
                 // init conversation with client...
                 printDebug("Trying to retrieve stub from "+username);
                 ClientList.putIfAbsent(username, stub);
+                if(BrokerID != null){
+                    if(isNotChild(BrokerID))
+                        ListFiller(BrokerID);
+                    else return ConnResponse.cyclicityDetected;
+                }
 
                 try {
                     ClientList.get(username).CLiNotify("TestInvoke", "Server", true);
@@ -49,6 +75,7 @@ public class RMIServer implements RMIServerInterface {
             case "disconnect":
                 if (!ClientList.containsKey(username)) return ConnResponse.NoSuchUser;
                 printDebug("Removing [" + username + "] from Users:");
+                if(BrokerID != null) removeIds(BrokerID);
                 System.err.println(username + (kickUser(username)?" removed" : " not removed"));
                 break;
         }
@@ -84,6 +111,7 @@ public class RMIServer implements RMIServerInterface {
         return new ArrayList<>(ClientList.keySet());
     } //todo: add in main repo.
 
+    public List<String> getChildrenIDs(){return ChildrenIDs;}
 
     @Override
     public boolean ManageAddTopic(String TopicName, String TopicOwner) throws RemoteException {
