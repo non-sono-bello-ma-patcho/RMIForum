@@ -144,6 +144,7 @@ public class RMIServer implements RMIServerInterface {
     public boolean kickUser(String user){
         if(!ClientList.containsKey(user)) return false;
         ClientList.remove(user);
+        if(ChildrenIDs.contains(user)) ChildrenIDs.remove(user);
         return true;
     }
 
