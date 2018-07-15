@@ -65,8 +65,15 @@ public class BrokerClass extends User {
     public boolean removeMessage(String topicLabel, String message){
         return ServerSide.removeMessage(topicLabel, message);
     }
-    // GETTERS //
 
+    // GETTERS //
+    public List<String> getTopics(){
+        return ServerSide.getTopics();
+    }
+
+    public List<String> getConnectedUsers(){
+        return ServerSide.getConnectedUsers();
+    }
 
 
 
