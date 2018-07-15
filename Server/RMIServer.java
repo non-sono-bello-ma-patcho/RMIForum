@@ -64,19 +64,12 @@ public class RMIServer implements RMIServerInterface {
                     else return ConnResponse.cyclicityDetected;
                 }
                 ClientList.putIfAbsent(username, stub);
-                try {
-                    ClientList.get(username).CLiNotify("TestInvoke", "Server", true);
-                } catch (NullPointerException e){
-                    System.err.println("Connection failed...");
-                    return ConnResponse.NoSuchUser;
-                }
-
                 break;
             case "disconnect":
                 if (!ClientList.containsKey(username)) return ConnResponse.NoSuchUser;
                 printDebug("Removing [" + username + "] from Users:");
                 if(BrokerID != null) removeIds(BrokerID);
-                System.err.println(username + (kickUser(username)?" removed" : " not removed"));
+                printDebug(username + (kickUser(username)?" removed" : " not removed"));
                 break;
         }
         return ConnResponse.Success;
@@ -202,11 +195,10 @@ public class RMIServer implements RMIServerInterface {
         } catch (RemoteException e) {
             e.printStackTrace();
         }
-        printInfo(rs);
     }
 
     private void printDebug(String text){
-        System.err.println(ANSI_BLUE+"[Debug]: "+text+ANSI_RESET);
+        System.err.println(ANSI_BLUE+"[ServerDebug]: "+text+ANSI_RESET);
     }
 
     class notifyHandler implements Callable<String> {
