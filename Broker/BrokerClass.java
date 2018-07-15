@@ -67,7 +67,7 @@ public class BrokerClass extends User {
     }
 
     // GETTERS //
-    public List<String> getTopics(){
+    public TopicList getTopics(){
         return ServerSide.getTopics();
     }
 
