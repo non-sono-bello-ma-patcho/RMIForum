@@ -79,7 +79,7 @@ public class User implements RMIClient{
 
     private void CheckError(){
         ServerConnected = null;
-        connected = false;
+        UnicastRemoteObject.unexportObject(this , true);
         System.err.println("["+username+" Error Message]: "+Errorstatus.toString());
     }
 
