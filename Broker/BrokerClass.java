@@ -67,7 +67,7 @@ public class BrokerClass extends User {
     }
 
     // GETTERS //
-    public TopicList getTopics(){
+    public TopicList getTopics() throws RemoteException {
         return ServerSide.getTopics();
     }
 
