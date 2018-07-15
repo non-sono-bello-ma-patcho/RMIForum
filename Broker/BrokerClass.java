@@ -4,7 +4,7 @@ import RMIForum.RMICore.TopicList;
 import RMIForum.Server.RMIServer;
 import RMIForum.user.User;
 
-
+import java.util.List;
 import java.net.UnknownHostException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
