@@ -6,17 +6,20 @@ import RMIForum.user.User;
 import parser.ast.Unsubscribe;
 
 import java.net.UnknownHostException;
+import java.nio.channels.AlreadyConnectedException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class BrokerClass extends RMIServer {
     private User clientSide;
 
     public BrokerClass() throws UnknownHostException {
         super();
-        clientSide = new User();
+        getChildrenIDs().add(UUID.randomUUID().toString());
+        clientSide = new User(getChildrenIDs());
     }
 
     /*-- Server Side --*/
@@ -81,6 +84,9 @@ public class BrokerClass extends RMIServer {
         return clientSide.SubscribeRequest(topicLabel, "unsubscribe");
     }
 
+
+
+
     // GETTERS //
 
     public String GetUsername(){
@@ -96,7 +102,7 @@ public class BrokerClass extends RMIServer {
     public TopicList getServerTopics(){
         return clientSide.getServerTopics();
     }
-    
+
     public List<String> getConnectedUsers(){
         return new ArrayList<String>(ClientList.keySet());
     }
@@ -104,6 +110,9 @@ public class BrokerClass extends RMIServer {
     public String getHost(){ return clientSide.getHost();}
 
     public User getUser(){ return clientSide;}
+
+    // deve essere un metodo remoto //
+
 
 
 

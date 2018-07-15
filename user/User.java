@@ -21,6 +21,7 @@ public class User implements RMIClient{
     private String host = "none";
     private String username;
     private String password;
+    private List<String> brokerID = null;
     private RMIUtility ClientHandler;
     private TopicList ServerTopics;
     private HashMap<String, List<MessageClass>> TopicsMessages;
@@ -37,13 +38,20 @@ public class User implements RMIClient{
         TopicsMessages = new HashMap<>();
     }
 
+    public User(List<String> b) throws UnknownHostException {
+        ClientHandler = new RMIUtility(1099,"RMISharedClient","RMISharedServer");
+        ServerTopics = new TopicList();
+        TopicsMessages = new HashMap<>();
+        brokerID = b;
+    }
+
 
     /*    auxiliary functions   */
     public void CheckConnection(){
-        /*if(!connected){
+        if(!connected){
             System.err.println("[Client Error Message] : NotConnected");
-            System.exit(-1); //lo lascio, poichè l'errore della connessione viene gestito altrove. questo è un caso partcolare.
-        }*/
+            // System.exit(-1); //lo lascio, poichè l'errore della connessione viene gestito altrove. questo è un caso partcolare.
+        }
     }
 
     private void exportStub(){
@@ -70,6 +78,8 @@ public class User implements RMIClient{
     }
 
     private void CheckError(){
+        ServerConnected = null;
+        connected = false;
         System.err.println("["+username+" Error Message]: "+Errorstatus.toString());
     }
 
@@ -86,7 +96,7 @@ public class User implements RMIClient{
         try {
             exportStub();
             ServerConnected = (RMIServerInterface) ClientHandler.getRemoteMethod(Serverhost,serverPort);
-            Errorstatus = ServerConnected.ManageConnection(user, stub, "connect");
+            Errorstatus = ServerConnected.ManageConnection(user, stub, brokerID,"connect");
             if(Errorstatus.equals(RMIServerInterface.ConnResponse.Success)) {
                 connected = true;
                 System.out.println(ANSI_BLUE+"[Client Message] : Done."+ANSI_RESET);
@@ -102,8 +112,9 @@ public class User implements RMIClient{
     public boolean disconnect(){
         System.out.println(ANSI_BLUE+"[Client Message] : Trying to disconnect from the server..."+ANSI_RESET);
         CheckConnection();
+        if(!connected) return false;
         try {
-            Errorstatus = ServerConnected.ManageConnection(username, stub, "disconnect");
+            Errorstatus = ServerConnected.ManageConnection(username, stub, brokerID, "disconnect");
             if(Errorstatus == RMIServerInterface.ConnResponse.Success) {
                 connected = false;
                 UnicastRemoteObject.unexportObject(this , false);
@@ -118,6 +129,7 @@ public class User implements RMIClient{
 
     public boolean SubscribeRequest(String TopicName, String op) throws RemoteException {
         CheckConnection();
+        if(!connected) return false;
         switch(op){
             case "subscribe":
                 System.out.println(ANSI_BLUE+"[Client Message] : Trying to subscribe to : "+TopicName+"..."+ANSI_RESET);
@@ -133,6 +145,7 @@ public class User implements RMIClient{
 
     public boolean AddTopicRequest(String TopicName) throws RemoteException {
         System.out.println(ANSI_BLUE+"[Client Message] : Trying to add the topic : "+TopicName+"..."+ANSI_RESET);
+        if(!connected) return false;
         CheckConnection();
         return ServerConnected.ManageAddTopic(TopicName, username);
     }
@@ -140,8 +153,8 @@ public class User implements RMIClient{
     public boolean PublishRequest(String text, String TopicName) throws RemoteException {
         System.out.println(ANSI_BLUE+"[Client Message] : Trying to send the message on : "+TopicName+"..."+ANSI_RESET);
         CheckConnection();
-        ServerConnected.ManagePublish(new MessageClass(username,text),TopicName);
-        return true;
+        if(!connected) return false;
+        return ServerConnected.ManagePublish(new MessageClass(username,text),TopicName);
     }
 
     @Override
@@ -176,6 +189,7 @@ public class User implements RMIClient{
     }
 
     public String getHost(){ return host;}
+
 
     /*      Debugging function     */
     private void PrintMap(){
