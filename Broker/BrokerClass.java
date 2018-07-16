@@ -8,6 +8,7 @@ import java.util.List;
 import java.net.UnknownHostException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
+import java.util.concurrent.ExecutionException;
 
 public class BrokerClass extends User {
     private RMIServer ServerSide;
@@ -54,7 +55,7 @@ public class BrokerClass extends User {
 
     /* Server Methods: */
 
-    public boolean kickUser(String user){
+    public boolean kickUser(String user) throws ExecutionException, InterruptedException {
         return ServerSide.ManualkickUser(user);
     }
 
