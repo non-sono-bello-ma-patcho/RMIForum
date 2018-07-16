@@ -55,7 +55,7 @@ public class BrokerClass extends User {
     /* Server Methods: */
 
     public boolean kickUser(String user){
-        return ServerSide.kickUser(user);
+        return ServerSide.ManualkickUser(user);
     }
 
     public boolean removeTopic(String topicLabel){
