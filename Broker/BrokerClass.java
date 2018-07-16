@@ -20,9 +20,9 @@ import java.util.concurrent.ExecutionException;
 
         public BrokerClass() throws UnknownHostException {
             super();
-            List<String> list = new ArrayList<>();
-            list.add(UUID.randomUUID().toString());
-            ClientSide = new User(list);
+            List <String> l = getChildrenIDs();
+            l.add(UUID.randomUUID().toString());
+            ClientSide = new User(l);
         }
 
         /*-- Server Side --*/
