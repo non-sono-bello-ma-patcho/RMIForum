@@ -162,7 +162,7 @@ public class User implements RMIClient{
     public  void CLiNotify(String TopicLabel, String TriggeredBy, boolean type) throws RemoteException {
         CheckConnection();
         if (TopicLabel.equals("_REMOVE_")){
-            System.out.println("You have been removed from remote");
+            System.out.println("[Notification]: You have been removed from remote");
             disconnect();
         }
         else {
