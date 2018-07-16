@@ -3,6 +3,7 @@ package RMIForum.Server;
 import RMIForum.RMICore.*;
 
 import java.rmi.NotBoundException;
+import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.List;
@@ -113,6 +114,11 @@ public class RMIServer implements RMIServerInterface {
         Topics.put(new TopicClass(TopicName, TopicOwner));
         Notify(TopicName, TopicOwner, false);
         return true;
+    }
+
+    @Override
+    public boolean ImConnected(String user) throws RemoteException {
+        return ClientList.containsKey(user);
     }
 
     public boolean removeMessage(String TopicLabel, String message){
