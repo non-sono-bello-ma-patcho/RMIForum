@@ -161,11 +161,14 @@ public class User implements RMIClient{
     @Override
     public  void CLiNotify(String TopicLabel, String TriggeredBy, boolean type) throws RemoteException {
         CheckConnection();
-        if (TopicLabel.equals("TestInvoke")) System.out.println("\t"+username+"SUCCESSFUL CONNECTION");
+        if (TopicLabel.equals("_REMOVE_")){
+            System.out.println("You have been removed from remote");
+            disconnect();
+        }
         else {
             // notifier.add(TopicLabel);
-            if (type) System.out.println("_NP_" + " " + TriggeredBy + " " + TopicLabel);
-            else System.out.println("_NT_" + " " + TriggeredBy + " " + TopicLabel);
+            if (type) System.out.println("[Notification]: " + TriggeredBy + " posted a new message on " + TopicLabel);
+            else System.out.println("[Notification]: " + TriggeredBy + " created the Topic " + TopicLabel);
             ChargeData();
         }
     }
