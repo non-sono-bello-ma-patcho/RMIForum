@@ -12,7 +12,6 @@ import java.util.*;
 
 import static java.lang.Math.abs;
 
-
 public class User implements RMIClient{
     //  public Registry pushRegistry; /* Registry used for pushing remote method */ INTERNO NELLA CLASSE RMIUtility, non viene mai chiamato...
     public RMIServerInterface ServerConnected;
@@ -23,6 +22,7 @@ public class User implements RMIClient{
     private String username;
     private String password;
     private List<String> brokerID = null;
+    private List<String> myTopics = null;
     private RMIUtility ClientHandler;
     private TopicList ServerTopics;
     private HashMap<String, List<MessageClass>> TopicsMessages;
@@ -33,16 +33,18 @@ public class User implements RMIClient{
 
     /*     constructor    */
 
-    public User() throws UnknownHostException {
+    public User() {
         ClientHandler = new RMIUtility(1099,"RMISharedClient","RMISharedServer");
         ServerTopics = new TopicList();
         TopicsMessages = new HashMap<>();
+        myTopics = new ArrayList<>();
     }
 
-    public User(List<String> b) throws UnknownHostException {
+    public User(List<String> b) {
         ClientHandler = new RMIUtility(1099,"RMISharedClient","RMISharedServer");
         ServerTopics = new TopicList();
         TopicsMessages = new HashMap<>();
+        myTopics = new ArrayList<>();
         brokerID = b;
     }
 
@@ -124,6 +126,7 @@ public class User implements RMIClient{
             Errorstatus = ServerConnected.ManageConnection(username, stub, brokerID, "disconnect");
             if(Errorstatus == RMIServerInterface.ConnResponse.Success) {
                 connected = false;
+                ServerConnected = null;
                 UnicastRemoteObject.unexportObject(this , false);
                 return true;
             }else CheckError();
@@ -138,11 +141,19 @@ public class User implements RMIClient{
         if(!connected) return false;
         switch(op){
             case "subscribe":
-               printDebug("Trying to subscribe to : "+TopicName);
-                return ServerConnected.ManageSubscribe(TopicName,username,false);
+                printDebug("Trying to subscribe to : "+TopicName);
+                if(ServerConnected.ManageSubscribe(TopicName,username,false)) {
+                    myTopics.add(TopicName);
+                    return true;
+                }
+                return false;
             case "unsubscribe":
                 printDebug("Trying to unsubscribe to : "+TopicName);
-                return ServerConnected.ManageSubscribe(TopicName,username,true);
+                if(ServerConnected.ManageSubscribe(TopicName,username,true)){
+                    myTopics.remove(TopicName);
+                    return true;
+                }
+                return false;
             default:
                 printDebug("Invalid operation");
         }
@@ -199,6 +210,9 @@ public class User implements RMIClient{
 
     public String getHost(){ return host;}
 
+    @Override
+    public List<String> getMyTopic() throws RemoteException { return myTopics; }
+
 
     /*      Debugging function     */
     private void PrintMap(){
@@ -239,8 +253,6 @@ public class User implements RMIClient{
                 System.err.println("\t\tDisconnection attempt for "+tempuser.GetUsername());
                 tempuser.disconnect();
                 System.err.println("\t\tDisconnect attempt for "+tempuser.GetUsername()+" successful");
-            } catch (UnknownHostException e) {
-                e.printStackTrace();
             } catch (RemoteException e) {
                 e.printStackTrace();
             } catch (InterruptedException e) {

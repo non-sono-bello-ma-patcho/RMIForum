@@ -57,13 +57,13 @@ public class RMIServer implements RMIServerInterface {
                 if (ClientList.containsKey(username)) return ConnResponse.AlreadyExist;
                 printDebug("Adding [" + username + "] to Users!");
                 // init conversation with client...
-                printDebug("Trying to retrieve stub from "+username);
                 if(BrokerID != null){
                     if(isNotChild(BrokerID)) {
                         ListFiller(BrokerID);
                     }
                     else return ConnResponse.cyclicityDetected;
                 }
+                printDebug("Trying to retrieve stub from "+username);
                 ClientList.putIfAbsent(username, stub);
                 break;
             case "disconnect":
@@ -140,7 +140,7 @@ public class RMIServer implements RMIServerInterface {
         }
     }
 
-    private boolean kickUser(String user){
+    public boolean kickUser(String user){
         if(!ClientList.containsKey(user)) return false;
         ClientList.remove(user);
         if(ChildrenIDs.contains(user)) ChildrenIDs.remove(user);
@@ -213,7 +213,7 @@ public class RMIServer implements RMIServerInterface {
         }
     }
 
-    private void printDebug(String text){
+    public void printDebug(String text){
         System.err.println("[ServerDebug]: "+text);
     }
 
@@ -239,7 +239,7 @@ public class RMIServer implements RMIServerInterface {
         }
     }
 
-    private Future<String> notifyClient(String user, RMIClient userstub, String tl, String tb, boolean t){
+    public Future<String> notifyClient(String user, RMIClient userstub, String tl, String tb, boolean t){
         return pool.submit(new notifyHandler(user, userstub, tl, tb, t));
     }
 }
