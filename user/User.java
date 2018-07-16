@@ -2,6 +2,10 @@ package RMIForum.user;
 
 
 import RMIForum.RMICore.*;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.UnknownHostException;
 import java.rmi.NoSuchObjectException;
 import java.rmi.NotBoundException;
@@ -26,10 +30,24 @@ public class User implements RMIClient{
     private RMIUtility ClientHandler;
     private TopicList ServerTopics;
     private HashMap<String, List<MessageClass>> TopicsMessages;
+    private File policy;
     public static final String ANSI_GREEN = "\u001B[32m";
     public static final String ANSI_BLUE = "\u001B[34m";
     public static final String ANSI_RESET = "\u001B[0m";
     public RMIServerInterface.ConnResponse Errorstatus = null;
+
+    {
+        try {
+            policy = File.createTempFile("RMIServer", ".policy");
+            // magari ci scriviamo sopra qualcosa va(?)
+            PrintWriter pw = new PrintWriter(policy, "UTF-8");
+            pw.println("\"grant {\n\tpermission java.security.AllPermission\n};");
+            pw.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        System.setProperty("java.security.policy", policy.getAbsolutePath());
+    }
 
     /*     constructor    */
 
