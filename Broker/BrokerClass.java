@@ -106,7 +106,8 @@ public class BrokerClass extends User implements RMIServerInterface {
         printDebug("["+User+"] wants to "+(!unsubscribe?"subscribe to ":"unsubscribe from ")+" ["+TopicLabel+"]: ");
         if(!Topics.contains(TopicLabel)){
             printDebug("No such topic...");
-            return false;
+            if(!GetConnectonStatus())return false;
+            else return ServerConnected.ManageSubscribe(TopicLabel, User, unsubscribe);
         }
         if(!unsubscribe) return (Topics.getTopicNamed(TopicLabel)).addUser(User);
         else return Topics.getTopicNamed(TopicLabel).RemoveUser(User);
@@ -114,8 +115,14 @@ public class BrokerClass extends User implements RMIServerInterface {
 
     @Override
     public boolean ManagePublish(MessageClass msg, String TopicName) throws RemoteException {
-        if(!Topics.getTopicNamed(TopicName).hasUser(msg.getUser())) return false;
-        printDebug("Publishing |"+msg.getFormatMsg()+"| to ["+TopicName+"]!");
+        // verifico che il topic non sia su un altro broker...
+        if(!Topics.contains(TopicName)){
+            // cerco il topic sull'altro broker e all'occorrenza chiamo ManagePublish su quello...
+            if(!GetConnectonStatus()) return false;
+            return ServerConnected.ManagePublish(msg, TopicName);
+        }
+        if (!Topics.getTopicNamed(TopicName).hasUser(msg.getUser())) return false;
+        printDebug("Publishing |" + msg.getFormatMsg() + "| to [" + TopicName + "]!");
         (Topics.getTopicNamed(TopicName)).addMessage(msg);
         Notify(TopicName, msg.getUser(), true); // update local users convos...
         return true;
@@ -174,10 +181,19 @@ public class BrokerClass extends User implements RMIServerInterface {
     }
 
     public void Notify(String TopicLabel, String TriggeredBy, boolean type) throws RemoteException {
-        if(ClientList.size()<=0) return;
+        BrokerClass tmp = this;
+        boolean hasu = false;
         List<Future<String>> response = new ArrayList<>(ClientList.size());
         for (String s : ClientList.keySet()) {
-            if (Topics.getTopicNamed(TopicLabel).hasUser(s) || !type) { // notify only if a topic has been added or the user is subscribed...
+            // devo verificare che il topic in questione non sia su un altro broker...
+            while(tmp.GetConnectonStatus()){
+                if(tmp.Topics.contains(TopicLabel)){
+                    hasu = tmp.Topics.getTopicNamed(TopicLabel).hasUser(s);
+                    break;
+                }
+                tmp = (BrokerClass) tmp.ServerConnected;
+            }
+            if (hasu || !type) { // notify only if a topic has been added or the user is subscribed...
                 printDebug("Notifying [" + s + "]:");
                 response.add(notifyClient(s, ClientList.get(s), TopicLabel, TriggeredBy, type));
             }
