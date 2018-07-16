@@ -3,6 +3,7 @@ package RMIForum.user;
 
 import RMIForum.RMICore.*;
 import java.net.UnknownHostException;
+import java.rmi.NoSuchObjectException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
@@ -55,8 +56,12 @@ public class User implements RMIClient{
     }
 
     private void exportStub(){
+        try{
+            UnicastRemoteObject.unexportObject(this, true);
+        } catch (NoSuchObjectException e) {
+        }
         int port = 1099;
-        while(true) {
+        while(port < 1199) {
             try {
                 stub = (RMIClient) UnicastRemoteObject.exportObject(this, port);
                 break;
