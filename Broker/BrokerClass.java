@@ -29,7 +29,7 @@ public class BrokerClass extends RMIServer {
             @Override
             public void CLiNotify(String TopicLabel, String TriggeredBy, boolean type) throws RemoteException {
                 super.CLiNotify(TopicLabel, TriggeredBy, type);
-                Notify(TopicLabel, TriggeredBy, type);
+                if(!TopicLabel.equals("_REMOVE")) Notify(TopicLabel, TriggeredBy, type);
             }
         }
 
@@ -134,8 +134,12 @@ public class BrokerClass extends RMIServer {
             return ClientSide;
         }
 
+        public boolean getConnectionStatus(){
+            return ClientSide.GetConnectonStatus();
+        }
+
         public TopicList getServerTopics() throws RemoteException {
-            return getTopics();
+            return ClientSide.getServerTopics();
         }
 
 }

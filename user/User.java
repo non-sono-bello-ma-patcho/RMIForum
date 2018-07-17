@@ -38,7 +38,7 @@ public class User implements RMIClient{
 
     {
         try {
-            policy = File.createTempFile("RMIServer", ".policy");
+            policy = File.createTempFile("RMIClient", ".policy");
             // magari ci scriviamo sopra qualcosa va(?)
             PrintWriter pw = new PrintWriter(policy, "UTF-8");
             pw.println("\"grant {\n\tpermission java.security.AllPermission\n};");
@@ -196,7 +196,7 @@ public class User implements RMIClient{
     public  void CLiNotify(String TopicLabel, String TriggeredBy, boolean type) throws RemoteException {
         CheckConnection();
         if (TopicLabel.equals("_REMOVE_")){
-            System.out.println("[Notification]: You have been removed from remote");
+            System.out.println("[RemovedNotification]: You have been removed from remote");
             disconnect();
         }
         else {
